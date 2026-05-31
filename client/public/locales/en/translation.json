@@ -104,7 +104,16 @@
     "guest_name_placeholder": "Name (required)",
     "guest_email_required": "Email is required",
     "guest_email_placeholder": "Email (required)",
-    "guest_website_placeholder": "Website (optional)"
+    "guest_website_placeholder": "Website (optional)",
+    "hide": "Hide comments",
+    "reply": "Reply",
+    "reply_to": "Reply to {{name}}",
+    "cancel_reply": "Cancel reply",
+    "submit_reply": "Post reply",
+    "reply_placeholder": "Reply to {{name}}…",
+    "parent_not_found": "Parent comment not found",
+    "invalid_parent": "Invalid reply target",
+    "nested_reply_not_supported": "Nested replies are not supported"
   },
   "comparison": "Comparison",
   "confirm": "Confirm",

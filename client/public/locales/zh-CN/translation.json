@@ -104,7 +104,16 @@
     "guest_name_placeholder": "昵称（必填）",
     "guest_email_required": "邮箱不能为空",
     "guest_email_placeholder": "邮箱（必填）",
-    "guest_website_placeholder": "网站（可选）"
+    "guest_website_placeholder": "网站（可选）",
+    "hide": "收起评论",
+    "reply": "回复",
+    "reply_to": "回复 {{name}}",
+    "cancel_reply": "取消回复",
+    "submit_reply": "发表回复",
+    "reply_placeholder": "回复 {{name}}…",
+    "parent_not_found": "原评论不存在",
+    "invalid_parent": "无效的回复目标",
+    "nested_reply_not_supported": "不支持多层回复，请回复主评论"
   },
   "comparison": "对比",
   "confirm": "确认",

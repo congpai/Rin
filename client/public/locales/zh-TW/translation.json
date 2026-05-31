@@ -104,7 +104,16 @@
     "guest_name_placeholder": "暱稱（必填）",
     "guest_email_required": "郵箱不能為空",
     "guest_email_placeholder": "郵箱（必填）",
-    "guest_website_placeholder": "網站（可選）"
+    "guest_website_placeholder": "網站（可選）",
+    "hide": "收起評論",
+    "reply": "回覆",
+    "reply_to": "回覆 {{name}}",
+    "cancel_reply": "取消回覆",
+    "submit_reply": "發表回覆",
+    "reply_placeholder": "回覆 {{name}}…",
+    "parent_not_found": "原留言不存在",
+    "invalid_parent": "無效的回覆目標",
+    "nested_reply_not_supported": "不支援多層回覆，請回覆主留言"
   },
   "comparison": "比較",
   "confirm": "確認",

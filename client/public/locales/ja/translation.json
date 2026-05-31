@@ -104,7 +104,16 @@
     "guest_name_placeholder": "名前（必須）",
     "guest_email_required": "メールアドレスは必須です",
     "guest_email_placeholder": "メール（必須）",
-    "guest_website_placeholder": "ウェブサイト（任意）"
+    "guest_website_placeholder": "ウェブサイト（任意）",
+    "hide": "コメントを閉じる",
+    "reply": "返信",
+    "reply_to": "{{name}} に返信",
+    "cancel_reply": "返信をキャンセル",
+    "submit_reply": "返信を投稿",
+    "reply_placeholder": "{{name}} に返信…",
+    "parent_not_found": "元のコメントが見つかりません",
+    "invalid_parent": "無効な返信先です",
+    "nested_reply_not_supported": "多段階の返信はサポートされていません"
   },
   "comparison": "対比",
   "confirm": "確認",
