@@ -1,3 +1,8 @@
+import {
+    generateFeedSummaryFromContent,
+    resolveFeedSummary,
+    FEED_AUTO_SUMMARY_MAX_LENGTH,
+} from "../utils/feed-summary";
 import { and, asc, count, desc, eq, gt, like, lt, or } from "drizzle-orm";
 import { Hono } from "hono";
 import type { Variables } from "../core/hono-types";
@@ -86,7 +91,7 @@ export function FeedService(): Hono<{
         }))).map(({ content, hashtags, summary, ...other }: any) => {
             const avatar = extractImageWithMetadata(content);
             return {
-                summary: summary.length > 0 ? summary : content.length > 100 ? content.slice(0, 100) : content,
+                summary: resolveFeedSummary(summary, content, FEED_AUTO_SUMMARY_MAX_LENGTH),
                 hashtags: hashtags.map(({ hashtag }: any) => hashtag),
                 avatar,
                 ...other
