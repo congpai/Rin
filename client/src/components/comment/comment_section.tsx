@@ -14,8 +14,9 @@ type CommentSectionProps = {
         guestWebsite?: string;
         parentId?: number;
         replyToId?: number;
-    }) => Promise<{ error?: string }>;
+    }) => Promise<{ error?: string; pending?: boolean }>;
     deleteComment: (id: number) => Promise<{ error?: string }>;
+    approveComment?: (id: number) => Promise<{ error?: string }>;
     lazy?: boolean;
     open?: boolean;
 };
@@ -25,6 +26,7 @@ export function CommentSection({
     loadComments,
     createComment,
     deleteComment,
+    approveComment,
     lazy = false,
     open = true,
 }: CommentSectionProps) {
@@ -93,6 +95,7 @@ export function CommentSection({
                 <CommentList
                     comments={comments}
                     onDelete={deleteComment}
+                    onApprove={approveComment}
                     onRefresh={() => void refresh()}
                     onReply={setReplyTo}
                 />

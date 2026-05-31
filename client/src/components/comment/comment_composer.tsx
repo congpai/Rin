@@ -18,7 +18,7 @@ export type CommentSubmitPayload = {
 };
 
 type CommentComposerProps = {
-    onSubmit: (payload: CommentSubmitPayload) => Promise<{ error?: string }>;
+    onSubmit: (payload: CommentSubmitPayload) => Promise<{ error?: string; pending?: boolean }>;
     placeholder?: string;
     replyTo?: { parentId: number; replyToId: number; name: string } | null;
     onCancelReply?: () => void;
@@ -132,7 +132,7 @@ export function CommentComposer({
         if (!profile) {
             persistGuestProfile();
         }
-        showAlert(t("comment.success"));
+        showAlert(result.pending ? t("comment.pending_submitted") : t("comment.success"));
     }
 
     async function handleImageUpload(file: File) {

@@ -25,6 +25,7 @@ export type CommentRecord = {
     guestName?: string;
     guestEmail?: string;
     guestWebsite?: string;
+    approved?: boolean;
 };
 
 export type CommentReplyTarget = {
@@ -36,9 +37,14 @@ export type CommentReplyTarget = {
 type CommentListProps = {
     comments: CommentRecord[];
     onDelete: (id: number) => Promise<{ error?: string }>;
+    onApprove?: (id: number) => Promise<{ error?: string }>;
     onRefresh: () => void;
     onReply?: (target: CommentReplyTarget) => void;
 };
+
+function isPendingComment(comment: CommentRecord) {
+    return comment.approved === false;
+}
 
 function commentName(comment: CommentRecord, anonymous: string) {
     return comment.user?.username || comment.guestName || anonymous;
@@ -110,12 +116,76 @@ function ClickableUser({
     );
 }
 
+function CommentModerationActions({
+    commentId,
+    onApprove,
+    onReject,
+    onDone,
+}: {
+    commentId: number;
+    onApprove?: (id: number) => Promise<{ error?: string }>;
+    onReject: (id: number) => Promise<{ error?: string }>;
+    onDone: () => void;
+}) {
+    const { t } = useTranslation();
+    const { showConfirm, ConfirmUI } = useConfirm();
+    const { showAlert, AlertUI } = useAlert();
+
+    if (!onApprove) {
+        return null;
+    }
+
+    return (
+        <>
+            <button
+                type="button"
+                className="rounded px-1 text-sm leading-none text-green-600 hover:bg-green-50 dark:hover:bg-green-950/40"
+                title={t("comment.approve")}
+                aria-label={t("comment.approve")}
+                onClick={() => {
+                    void onApprove(commentId).then(({ error }) => {
+                        if (error) {
+                            showAlert(error);
+                        } else {
+                            showAlert(t("comment.approve_success"), onDone);
+                        }
+                    });
+                }}
+            >
+                ✔
+            </button>
+            <button
+                type="button"
+                className="rounded px-1 text-sm leading-none text-red-500 hover:bg-red-50 dark:hover:bg-red-950/40"
+                title={t("comment.reject")}
+                aria-label={t("comment.reject")}
+                onClick={() =>
+                    showConfirm(t("comment.reject"), t("comment.reject_confirm"), () => {
+                        void onReject(commentId).then(({ error }) => {
+                            if (error) {
+                                showAlert(error);
+                            } else {
+                                showAlert(t("comment.reject_success"), onDone);
+                            }
+                        });
+                    })
+                }
+            >
+                ✕
+            </button>
+            <ConfirmUI />
+            <AlertUI />
+        </>
+    );
+}
+
 function CommentReplyTail({
     root,
     replies,
     byId,
     defaultAvatar,
     onDelete,
+    onApprove,
     onRefresh,
     onReply,
 }: {
@@ -124,6 +194,7 @@ function CommentReplyTail({
     byId: Map<number, CommentRecord>;
     defaultAvatar: string;
     onDelete: (id: number) => Promise<{ error?: string }>;
+    onApprove?: (id: number) => Promise<{ error?: string }>;
     onRefresh: () => void;
     onReply?: (target: CommentReplyTarget) => void;
 }) {
@@ -132,6 +203,7 @@ function CommentReplyTail({
     const { showAlert, AlertUI } = useAlert();
     const profile = useContext(ProfileContext);
     const anonymous = t("anonymous");
+    const isAdmin = Boolean(profile?.permission);
 
     return (
         <div className="mt-3 rounded-lg bg-secondary/80 px-3 py-2 text-sm leading-relaxed">
@@ -143,11 +215,28 @@ function CommentReplyTail({
                 const canDelete =
                     profile?.permission ||
                     (reply.user && profile?.id === reply.user.id);
+                const pending = isPendingComment(reply);
 
                 return (
-                    <div key={reply.id} className="group py-1">
+                    <div
+                        key={reply.id}
+                        className={`group py-1 ${pending ? "rounded-md bg-amber-50/80 px-2 -mx-2 dark:bg-amber-950/20" : ""}`}
+                    >
                         <div className="min-w-0 overflow-hidden break-words leading-relaxed t-primary">
                             <div className="float-right ml-2 flex shrink-0 items-center gap-1 pl-1">
+                                {isAdmin && pending ? (
+                                    <CommentModerationActions
+                                        commentId={reply.id}
+                                        onApprove={onApprove}
+                                        onReject={onDelete}
+                                        onDone={onRefresh}
+                                    />
+                                ) : null}
+                                {pending ? (
+                                    <span className="rounded-full bg-amber-200/80 px-1.5 py-0.5 text-[10px] font-medium text-amber-900 dark:bg-amber-900/50 dark:text-amber-100">
+                                        {t("comment.pending")}
+                                    </span>
+                                ) : null}
                                 <span
                                     title={new Date(reply.createdAt).toLocaleString()}
                                     className="text-xs whitespace-nowrap text-gray-400"
@@ -231,6 +320,7 @@ function CommentThread({
     replies,
     byId,
     onDelete,
+    onApprove,
     onRefresh,
     onReply,
 }: {
@@ -238,6 +328,7 @@ function CommentThread({
     replies: CommentRecord[];
     byId: Map<number, CommentRecord>;
     onDelete: (id: number) => Promise<{ error?: string }>;
+    onApprove?: (id: number) => Promise<{ error?: string }>;
     onRefresh: () => void;
     onReply?: (target: CommentReplyTarget) => void;
 }) {
@@ -247,9 +338,11 @@ function CommentThread({
     const profile = useContext(ProfileContext);
     const siteConfig = useSiteConfig();
     const anonymous = t("anonymous");
+    const isAdmin = Boolean(profile?.permission);
 
     const name = commentName(root, anonymous);
     const avatar = commentAvatar(root, siteConfig.avatar);
+    const pending = isPendingComment(root);
     const canDelete =
         profile?.permission ||
         (root.user && profile?.id === root.user.id);
@@ -261,9 +354,20 @@ function CommentThread({
                 alt=""
                 className="mt-4 h-8 w-8 shrink-0 rounded-full object-cover"
             />
-            <div className="ml-2 flex flex-1 flex-col rounded-xl bg-w p-4">
-                <div className="flex flex-row items-center">
+            <div
+                className={`ml-2 flex flex-1 flex-col rounded-xl p-4 ${
+                    pending
+                        ? "bg-amber-50/80 ring-1 ring-amber-300/50 dark:bg-amber-950/20 dark:ring-amber-700/40"
+                        : "bg-w"
+                }`}
+            >
+                <div className="flex flex-row items-center gap-2">
                     <span className="text-base font-bold t-primary">{name}</span>
+                    {pending ? (
+                        <span className="rounded-full bg-amber-200/80 px-2 py-0.5 text-xs font-medium text-amber-900 dark:bg-amber-900/50 dark:text-amber-100">
+                            {t("comment.pending")}
+                        </span>
+                    ) : null}
                     {root.guestWebsite ? (
                         <a
                             href={root.guestWebsite}
@@ -275,6 +379,14 @@ function CommentThread({
                         </a>
                     ) : null}
                     <div className="flex-1" />
+                    {isAdmin && pending ? (
+                        <CommentModerationActions
+                            commentId={root.id}
+                            onApprove={onApprove}
+                            onReject={onDelete}
+                            onDone={onRefresh}
+                        />
+                    ) : null}
                     <span
                         title={new Date(root.createdAt).toLocaleString()}
                         className="text-sm text-gray-400"
@@ -290,6 +402,7 @@ function CommentThread({
                         byId={byId}
                         defaultAvatar={siteConfig.avatar}
                         onDelete={onDelete}
+                        onApprove={onApprove}
                         onRefresh={onRefresh}
                         onReply={onReply}
                     />
@@ -347,7 +460,7 @@ function CommentThread({
     );
 }
 
-export function CommentList({ comments, onDelete, onRefresh, onReply }: CommentListProps) {
+export function CommentList({ comments, onDelete, onApprove, onRefresh, onReply }: CommentListProps) {
     if (comments.length === 0) {
         return null;
     }
@@ -364,6 +477,7 @@ export function CommentList({ comments, onDelete, onRefresh, onReply }: CommentL
                     replies={replies}
                     byId={byId}
                     onDelete={onDelete}
+                    onApprove={onApprove}
                     onRefresh={onRefresh}
                     onReply={onReply}
                 />
