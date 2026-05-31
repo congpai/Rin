@@ -157,28 +157,107 @@ describe('CommentService', () => {
         });
 
         it('should reject guest comment without guestEmail', async () => {
-    const res = await app.request('/1', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ content: 'Guest no email', guestName: 'Visitor' }),
-    }, env);
-    expect(res.status).toBe(400);
-    expect(await res.text()).toContain('Guest email is required');
-});
+            const res = await app.request('/1', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content: 'Guest no email', guestName: 'Visitor' }),
+            }, env);
+            expect(res.status).toBe(400);
+            expect(await res.text()).toContain('Guest email is required');
+        });
 
         it('should return guest comments with user: null in list', async () => {
-    const createRes = await app.request('/1', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-            content: 'Hi from guest',
-            guestName: 'Guest',
-            guestEmail: 'guest@example.com',  // 加上这行
-        }),
-    }, env);
-    expect(createRes.status).toBe(200);
-    // ... 后面不变
-});
+            const createRes = await app.request('/1', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    content: 'Hi from guest',
+                    guestName: 'Guest',
+                    guestEmail: 'guest@example.com',
+                }),
+            }, env);
+            expect(createRes.status).toBe(200);
+
+            const res = await app.request('/1', { method: 'GET' }, env);
+            expect(res.status).toBe(200);
+            const data = await res.json() as any[];
+            const guestComment = data.find((c: any) => c.guestName === 'Guest');
+            expect(guestComment).toBeDefined();
+            expect(guestComment.user).toBeNull();
+            expect(guestComment.content).toBe('Hi from guest');
+        });
+
+        it('should create a reply to a top-level comment', async () => {
+            const parentRes = await app.request('/1', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer mock_token_1',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ content: 'Root comment' }),
+            }, env);
+            expect(parentRes.status).toBe(200);
+
+            const listRes = await app.request('/1', { method: 'GET' }, env);
+            const list = await listRes.json() as any[];
+            const parent = list.find((c: any) => c.content === 'Root comment');
+            expect(parent).toBeDefined();
+
+            const replyRes = await app.request('/1', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer mock_token_2',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ content: 'Reply comment', parentId: parent.id }),
+            }, env);
+            expect(replyRes.status).toBe(200);
+
+            const after = await app.request('/1', { method: 'GET' }, env);
+            const comments = await after.json() as any[];
+            const reply = comments.find((c: any) => c.content === 'Reply comment');
+            expect(reply.parentId).toBe(parent.id);
+        });
+
+        it('should reject nested replies', async () => {
+            const parentRes = await app.request('/1', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer mock_token_1',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ content: 'Root for nested test' }),
+            }, env);
+            expect(parentRes.status).toBe(200);
+
+            const list = await (await app.request('/1', { method: 'GET' }, env)).json() as any[];
+            const parent = list.find((c: any) => c.content === 'Root for nested test');
+
+            const replyRes = await app.request('/1', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer mock_token_2',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ content: 'First reply', parentId: parent.id }),
+            }, env);
+            expect(replyRes.status).toBe(200);
+
+            const afterReply = await (await app.request('/1', { method: 'GET' }, env)).json() as any[];
+            const reply = afterReply.find((c: any) => c.content === 'First reply');
+
+            const nestedRes = await app.request('/1', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer mock_token_1',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ content: 'Nested reply', parentId: reply.id }),
+            }, env);
+            expect(nestedRes.status).toBe(400);
+            expect(await nestedRes.text()).toContain('Nested replies are not supported');
+        });
+
         it('should return 400 when not authenticated and guest name missing', async () => {
             const res = await app.request('/1', {
                 method: 'POST',
