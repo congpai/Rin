@@ -8,7 +8,7 @@ import { parseImageUrlMetadata } from "../utils/image-upload";
 import { useImageLoadState } from "../utils/use-image-load-state";
 import { type FeedCardVariant, normalizeFeedCardVariant } from "./feed-card-options";
 import { useSiteConfig } from "../hooks/useSiteConfig";
-import { normalizeFeedSummaryDisplay } from "../utils/feed-summary";  // ← 新增
+import { FEED_AUTO_SUMMARY_MAX_LENGTH, normalizeFeedSummaryDisplay } from "../utils/feed-summary";
 
 function FeedCardImage({ src, variant }: { src: string; variant: FeedCardVariant }) {
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -72,14 +72,14 @@ const FEED_CARD_STYLES: Record<
         card: "my-2 inline-block w-full break-inside-avoid rounded-2xl bg-w p-6 duration-300 bg-button",
         imageWrap: "",
         meta: "text-gray-400 text-sm",
-        summary: "line-clamp-4 text-pretty overflow-hidden dark:text-neutral-500",
+        summary: "line-clamp-6 text-pretty overflow-hidden dark:text-neutral-500",
         title: "text-xl font-bold text-gray-700 dark:text-white text-pretty overflow-hidden",
     },
     editorial: {
         card: "my-3 inline-block w-full break-inside-avoid overflow-hidden rounded-[28px] border border-black/10 bg-w p-3 shadow-[0_24px_60px_rgba(15,23,42,0.08)] transition-all hover:-translate-y-0.5 hover:shadow-[0_28px_70px_rgba(15,23,42,0.12)] dark:border-white/10",
         imageWrap: "mb-3 overflow-hidden rounded-[22px] border border-black/5 dark:border-white/10",
         meta: "text-[12px] font-medium uppercase tracking-[0.18em] text-neutral-500 dark:text-neutral-400",
-        summary: "line-clamp-5 text-pretty text-[15px] leading-7 text-neutral-600 dark:text-neutral-300",
+        summary: "line-clamp-8 text-pretty text-[15px] leading-7 text-neutral-600 dark:text-neutral-300",
         title: "text-2xl font-semibold tracking-[-0.02em] text-neutral-900 dark:text-white text-pretty overflow-hidden",
     },
 };
@@ -104,7 +104,7 @@ export function FeedCard({ id, title, avatar, draft, listed, top, summary, hasht
     const siteConfig = useSiteConfig();
     const activeVariant = normalizeFeedCardVariant(variant ?? siteConfig.feedCardVariant);
     const styles = FEED_CARD_STYLES[activeVariant];
-    const displaySummary = normalizeFeedSummaryDisplay(summary);  // ← 新增
+    const displaySummary = normalizeFeedSummaryDisplay(summary, FEED_AUTO_SUMMARY_MAX_LENGTH);
     const body = (
         <div className={styles.card}>
             {avatar ? (
@@ -129,7 +129,7 @@ export function FeedCard({ id, title, avatar, draft, listed, top, summary, hasht
                     {listed === 0 && <span>{t("unlisted")}</span>}
                     {top === 1 && <span className="text-theme">{t('article.top.title')}</span>}
                 </p>
-                <p className={`${styles.summary} ${activeVariant === "editorial" ? "mt-4 max-w-3xl" : ""}`}>{displaySummary}</p>  {/* ← 改这里 */}
+                <p className={`${styles.summary} ${activeVariant === "editorial" ? "mt-4 max-w-3xl" : ""}`}>{displaySummary}</p>
                 {hashtags.length > 0 &&
                     <div className={`flex flex-row flex-wrap justify-start gap-2 ${activeVariant === "editorial" ? "mt-4" : "mt-2 gap-x-2"}`}>
                         {hashtags.map(({ name }, index) => (
