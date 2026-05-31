@@ -51,6 +51,9 @@ export function normalizeContentForFeedSummary(content: string): string {
         return trimmed ? `[${trimmed}]` : "[图片]";
     });
 
+    // Markdown links [text](url) → text
+    text = text.replace(/\[([^\]]+)\]\([^)]*\)/g, "$1");
+
     text = text.replace(/<[^>]+>?/g, "");
     text = text.replace(/<[^>]*/g, "");
     text = text.replace(/https?:\/\/\S+/gi, "");
