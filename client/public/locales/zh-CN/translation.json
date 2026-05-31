@@ -102,7 +102,8 @@
     "title": "评论",
     "guest_name_required": "昵称不能为空",
     "guest_name_placeholder": "昵称（必填）",
-    "guest_email_placeholder": "邮箱（可选）",
+    "guest_email_required": "邮箱不能为空",
+    "guest_email_placeholder": "邮箱（必填）"
     "guest_website_placeholder": "网站（可选）"
   },
   "comparison": "对比",
