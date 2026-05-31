@@ -7,7 +7,7 @@ import { useSiteConfig } from "../../hooks/useSiteConfig";
 import { resolveCommentAvatar } from "../../utils/cravatar";
 import { groupCommentThreads } from "../../utils/comment-thread";
 import { timeago } from "../../utils/timeago";
-import { CommentContent, CommentTailContent } from "./comment_content";
+import { CommentContent, CommentTailImages, stripMarkdownImages } from "./comment_content";
 
 export type CommentRecord = {
     id: number;
@@ -139,36 +139,36 @@ function CommentReplyTail({
                 const name = commentName(reply, anonymous);
                 const target = resolveReplyTargetComment(reply, root, byId);
                 const targetName = commentName(target, anonymous);
+                const text = stripMarkdownImages(reply.content);
                 const canDelete =
                     profile?.permission ||
                     (reply.user && profile?.id === reply.user.id);
 
                 return (
                     <div key={reply.id} className="group flex items-start gap-1 py-1">
-                        <div className="min-w-0 flex-1 break-words t-primary">
-                            <p className="flex flex-wrap items-center gap-x-1 gap-y-0.5">
-                                <ClickableUser
-                                    name={name}
-                                    avatar={commentAvatar(reply, defaultAvatar)}
-                                    onClick={
-                                        onReply
-                                            ? () => onReply(buildReplyTarget(root, reply, anonymous))
-                                            : undefined
-                                    }
-                                />
-                                <span className="t-secondary">{t("comment.reply_action")}</span>
-                                <ClickableUser
-                                    name={targetName}
-                                    avatar={commentAvatar(target, defaultAvatar)}
-                                    onClick={
-                                        onReply
-                                            ? () => onReply(buildReplyTarget(root, target, anonymous))
-                                            : undefined
-                                    }
-                                />
-                                <span className="t-secondary">：</span>
-                            </p>
-                            <CommentTailContent content={reply.content} />
+                        <div className="min-w-0 flex-1 break-words leading-relaxed t-primary">
+                            <ClickableUser
+                                name={name}
+                                avatar={commentAvatar(reply, defaultAvatar)}
+                                onClick={
+                                    onReply
+                                        ? () => onReply(buildReplyTarget(root, reply, anonymous))
+                                        : undefined
+                                }
+                            />
+                            <span className="t-secondary"> {t("comment.reply_action")} </span>
+                            <ClickableUser
+                                name={targetName}
+                                avatar={commentAvatar(target, defaultAvatar)}
+                                onClick={
+                                    onReply
+                                        ? () => onReply(buildReplyTarget(root, target, anonymous))
+                                        : undefined
+                                }
+                            />
+                            <span className="t-secondary">：</span>
+                            {text ? <span>{text}</span> : null}
+                            <CommentTailImages content={reply.content} />
                         </div>
                         {canDelete ? (
                             <Popup

@@ -21,33 +21,43 @@ export function extractMarkdownImages(content: string) {
     return images;
 }
 
+export function CommentTailImages({ content }: { content: string }) {
+    const images = extractMarkdownImages(content);
+    if (images.length === 0) {
+        return null;
+    }
+
+    const text = stripMarkdownImages(content);
+
+    return (
+        <div className={text ? "mt-1.5 flex flex-wrap gap-1.5" : "mt-0.5 flex flex-wrap gap-1.5"}>
+            {images.map((image, index) => (
+                <a
+                    key={`${image.src}-${index}`}
+                    href={image.src}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-block"
+                >
+                    <img
+                        src={image.src}
+                        alt={image.alt}
+                        loading="lazy"
+                        className="max-h-20 max-w-[8rem] rounded-md object-cover"
+                    />
+                </a>
+            ))}
+        </div>
+    );
+}
+
 export function CommentTailContent({ content }: { content: string }) {
     const text = stripMarkdownImages(content);
-    const images = extractMarkdownImages(content);
 
     return (
         <>
             {text ? <span>{text}</span> : null}
-            {images.length > 0 ? (
-                <div className={text ? "mt-1.5 flex flex-wrap gap-1.5" : "mt-0.5 flex flex-wrap gap-1.5"}>
-                    {images.map((image, index) => (
-                        <a
-                            key={`${image.src}-${index}`}
-                            href={image.src}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="inline-block"
-                        >
-                            <img
-                                src={image.src}
-                                alt={image.alt}
-                                loading="lazy"
-                                className="max-h-20 max-w-[8rem] rounded-md object-cover"
-                            />
-                        </a>
-                    ))}
-                </div>
-            ) : null}
+            <CommentTailImages content={content} />
         </>
     );
 }
