@@ -12,9 +12,9 @@ type CommentSectionProps = {
         guestName?: string;
         guestEmail?: string;
         guestWebsite?: string;
+        parentId?: number;
     }) => Promise<{ error?: string }>;
     deleteComment: (id: number) => Promise<{ error?: string }>;
-    /** 动态评论：折叠面板内懒加载 */
     lazy?: boolean;
     open?: boolean;
 };
@@ -32,7 +32,9 @@ export function CommentSection({
     const [comments, setComments] = useState<CommentRecord[]>([]);
     const [error, setError] = useState("");
     const [loaded, setLoaded] = useState(!lazy);
+    const [replyTo, setReplyTo] = useState<{ id: number; name: string } | null>(null);
     const ref = useRef(false);
+    const composerRef = useRef<HTMLDivElement>(null);
 
     function refresh() {
         return loadComments().then(({ data, error: err }) => {
@@ -65,9 +67,13 @@ export function CommentSection({
     return (
         <div className="mt-3 w-full">
             <CommentComposer
+                composerRef={composerRef}
+                replyTo={replyTo}
+                onCancelReply={() => setReplyTo(null)}
                 onSubmit={async (payload) => {
                     const result = await createComment(payload);
                     if (!result.error) {
+                        setReplyTo(null);
                         await refresh();
                     }
                     return result;
@@ -89,6 +95,12 @@ export function CommentSection({
                     comments={comments}
                     onDelete={deleteComment}
                     onRefresh={() => void refresh()}
+                    onReply={(comment) =>
+                        setReplyTo({
+                            id: comment.id,
+                            name: comment.user?.username || comment.guestName || t("anonymous"),
+                        })
+                    }
                 />
             ) : null}
         </div>
