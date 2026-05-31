@@ -362,6 +362,11 @@ class CommentAPI {
   async delete(id: number): Promise<ApiResponse<void>> {
     return this.http.delete<void>(`/api/comment/${id}`);
   }
+
+  // PATCH /api/comment/approve/:id
+  async approve(id: number): Promise<ApiResponse<string>> {
+    return this.http.patch<string>(`/api/comment/approve/${id}`);
+  }
 }
 
 class MomentCommentAPI {
@@ -377,6 +382,10 @@ class MomentCommentAPI {
 
   async delete(id: number): Promise<ApiResponse<void>> {
     return this.http.delete<void>(`/api/moment-comment/${id}`);
+  }
+
+  async approve(id: number): Promise<ApiResponse<string>> {
+    return this.http.patch<string>(`/api/moment-comment/approve/${id}`);
   }
 }
 
