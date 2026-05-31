@@ -5,9 +5,6 @@ import { profileAsync } from "../core/server-timing";
 import { momentComments, moments, users } from "../db/schema";
 import { notify } from "../utils/webhook";
 import { resolveWebhookConfig } from "./config-helpers";
-
-import { notify } from "../utils/webhook";
-import { resolveWebhookConfig } from "./config-helpers";
 import { resolveMomentCommentParentId } from "../utils/comment-parent";
 
 function formatCommentRow(row: any) {
