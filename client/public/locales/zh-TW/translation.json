@@ -102,7 +102,8 @@
     "title": "留言",
     "guest_name_required": "暱稱不能為空",
     "guest_name_placeholder": "暱稱（必填）",
-    "guest_email_placeholder": "郵箱（可選）",
+    "guest_email_required": "郵箱不能為空",
+    "guest_email_placeholder": "郵箱（必填）",
     "guest_website_placeholder": "網站（可選）"
   },
   "comparison": "比較",
