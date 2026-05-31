@@ -115,7 +115,14 @@
     "reply_placeholder": "Reply to {{name}}…",
     "parent_not_found": "Parent comment not found",
     "invalid_parent": "Invalid reply target",
-    "nested_reply_not_supported": "Nested replies are not supported"
+    "nested_reply_not_supported": "Nested replies are not supported",
+    "pending": "Pending",
+    "pending_submitted": "Your comment was submitted and is awaiting moderation",
+    "approve": "Approve",
+    "approve_success": "Comment approved",
+    "reject": "Reject",
+    "reject_confirm": "Reject and delete this comment?",
+    "reject_success": "Comment rejected"
   },
   "comparison": "Comparison",
   "confirm": "Confirm",
@@ -281,6 +288,12 @@
       "enable": {
         "desc": "Open/close the comment entry and comment area at the bottom of the article",
         "title": "Enable Comments"
+      },
+      "moderation": {
+        "guest": {
+          "desc": "When enabled, guest comments must be approved before they are visible to everyone",
+          "title": "Moderate guest comments"
+        }
       }
     },
     "counter": {

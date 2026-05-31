@@ -115,7 +115,14 @@
     "reply_placeholder": "回复 {{name}}…",
     "parent_not_found": "原评论不存在",
     "invalid_parent": "无效的回复目标",
-    "nested_reply_not_supported": "不支持多层回复，请回复主评论"
+    "nested_reply_not_supported": "不支持多层回复，请回复主评论",
+    "pending": "待审核",
+    "pending_submitted": "评论已提交，等待管理员审核",
+    "approve": "通过",
+    "approve_success": "已通过审核",
+    "reject": "拒绝",
+    "reject_confirm": "确定拒绝并删除这条评论吗？",
+    "reject_success": "已拒绝该评论"
   },
   "comparison": "对比",
   "confirm": "确认",
@@ -281,6 +288,12 @@
       "enable": {
         "desc": "开启/关闭文章底部评论入口与评论区",
         "title": "启用评论"
+      },
+      "moderation": {
+        "guest": {
+          "desc": "开启后，游客评论需管理员审核通过才会公开显示",
+          "title": "游客评论审核"
+        }
       }
     },
     "counter": {

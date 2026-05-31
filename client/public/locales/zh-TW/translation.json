@@ -115,7 +115,14 @@
     "reply_placeholder": "回覆 {{name}}…",
     "parent_not_found": "原留言不存在",
     "invalid_parent": "無效的回覆目標",
-    "nested_reply_not_supported": "不支援多層回覆，請回覆主留言"
+    "nested_reply_not_supported": "不支援多層回覆，請回覆主留言",
+    "pending": "待審核",
+    "pending_submitted": "留言已提交，等待管理員審核",
+    "approve": "通過",
+    "approve_success": "已通過審核",
+    "reject": "拒絕",
+    "reject_confirm": "確定拒絕並刪除這則留言嗎？",
+    "reject_success": "已拒絕該留言"
   },
   "comparison": "比較",
   "confirm": "確認",
@@ -281,6 +288,12 @@
       "enable": {
         "desc": "開啟/關閉文章底部留言入口與留言區",
         "title": "啟用留言"
+      },
+      "moderation": {
+        "guest": {
+          "desc": "開啟後，遊客留言需管理員審核通過才會公開顯示",
+          "title": "遊客留言審核"
+        }
       }
     },
     "counter": {
