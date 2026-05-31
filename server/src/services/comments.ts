@@ -5,6 +5,25 @@ import { comments, feeds, users } from "../db/schema";
 import { profileAsync } from "../core/server-timing";
 import { notify } from "../utils/webhook";
 import { resolveWebhookConfig } from "./config-helpers";
+import { resolveFeedCommentParentId } from "../utils/comment-parent";
+
+function formatCommentRow(row: any) {
+    if (row.user) {
+        return {
+            ...row,
+            parentId: row.parentId ?? null,
+        };
+    }
+    const { user, ...rest } = row;
+    return {
+        ...rest,
+        user: null,
+        parentId: rest.parentId ?? null,
+        guestName: rest.guestName || "",
+        guestEmail: rest.guestEmail || "",
+        guestWebsite: rest.guestWebsite || "",
+    };
+}
 
 export function CommentService(): Hono {
     const app = new Hono();
@@ -25,21 +44,7 @@ export function CommentService(): Hono {
         }));
         
         // 将结果统一为前端兼容格式：登录用户用 user 字段，游客用 guestName 等
-        const result = comment_list.map((c: any) => {
-            if (c.user) {
-                // 登录用户的评论
-                return c;
-            }
-            // 游客评论：去掉空的 user 字段，保留 guestName 等
-            const { user, ...rest } = c;
-            return {
-                ...rest,
-                user: null,
-                guestName: rest.guestName || "",
-                guestEmail: rest.guestEmail || "",
-                guestWebsite: rest.guestWebsite || "",
-            };
-        });
+        const result = comment_list.map(formatCommentRow);
         
         return c.json(result);
     });
@@ -51,10 +56,15 @@ export function CommentService(): Hono {
         const uid = c.get('uid');
         const feedId = parseInt(c.req.param('feed'));
         const body = await profileAsync(c, 'comment_create_parse', () => c.req.json());
-        const { content, guestName, guestEmail, guestWebsite } = body;
+        const { content, guestName, guestEmail, guestWebsite, parentId } = body;
         
         if (!content) {
             return c.text('Content is required', 400);
+        }
+
+        const parentResult = await resolveFeedCommentParentId(db, feedId, parentId);
+        if ("error" in parentResult) {
+            return c.text(parentResult.error, 400);
         }
         
         const exist = await profileAsync(c, 'comment_create_feed', () => db.query.feeds.findFirst({ where: eq(feeds.id, feedId) }));
@@ -72,7 +82,8 @@ export function CommentService(): Hono {
             await db.insert(comments).values({
                 feedId,
                 userId: uid,
-                content
+                content,
+                parentId: parentResult.parentId,
             });
 
             const { webhookUrl, webhookMethod, webhookContentType, webhookHeaders, webhookBodyTemplate } =
@@ -117,6 +128,7 @@ export function CommentService(): Hono {
             guestName: guestName.trim(),
             guestEmail: guestEmail?.trim() || "",
             guestWebsite: guestWebsite?.trim() || "",
+            parentId: parentResult.parentId,
             approved: 1,
         });
 
