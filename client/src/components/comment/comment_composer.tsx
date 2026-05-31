@@ -1,4 +1,4 @@
-import { useContext, useEffect, useRef, useState, type RefObject } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
 import { useAlert } from "../dialog";
@@ -21,7 +21,6 @@ type CommentComposerProps = {
     placeholder?: string;
     replyTo?: { id: number; name: string } | null;
     onCancelReply?: () => void;
-    composerRef?: RefObject<HTMLDivElement | null>;
 };
 
 export function CommentComposer({
@@ -29,7 +28,6 @@ export function CommentComposer({
     placeholder,
     replyTo,
     onCancelReply,
-    composerRef,
 }: CommentComposerProps) {
     const { t } = useTranslation();
     const cachedGuest = readGuestCommentProfile();
@@ -42,6 +40,7 @@ export function CommentComposer({
     const [uploading, setUploading] = useState(false);
     const [showEmoji, setShowEmoji] = useState(false);
     const textareaRef = useRef<HTMLTextAreaElement>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
     const fileRef = useRef<HTMLInputElement>(null);
     const { showAlert, AlertUI } = useAlert();
     const profile = useContext(ProfileContext);
@@ -53,9 +52,9 @@ export function CommentComposer({
 
     useEffect(() => {
         if (!replyTo) return;
-        composerRef?.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+        containerRef.current?.scrollIntoView({ behavior: "smooth", block: "center" });
         requestAnimationFrame(() => textareaRef.current?.focus());
-    }, [replyTo, composerRef]);
+    }, [replyTo]);
 
     function insertAtCursor(text: string) {
         const el = textareaRef.current;
@@ -149,7 +148,7 @@ export function CommentComposer({
 
     return (
         <div
-            ref={composerRef}
+            ref={containerRef}
             className="flex w-full flex-col rounded-2xl bg-w p-4 t-primary sm:p-6"
         >
             <div className="mb-3 flex w-full flex-col items-start">

@@ -34,7 +34,6 @@ export function CommentSection({
     const [loaded, setLoaded] = useState(!lazy);
     const [replyTo, setReplyTo] = useState<{ id: number; name: string } | null>(null);
     const ref = useRef(false);
-    const composerRef = useRef<HTMLDivElement>(null);
 
     function refresh() {
         return loadComments().then(({ data, error: err }) => {
@@ -67,7 +66,6 @@ export function CommentSection({
     return (
         <div className="mt-3 w-full">
             <CommentComposer
-                composerRef={composerRef}
                 replyTo={replyTo}
                 onCancelReply={() => setReplyTo(null)}
                 onSubmit={async (payload) => {
