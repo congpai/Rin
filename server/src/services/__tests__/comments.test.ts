@@ -10,6 +10,7 @@ describe('CommentService', () => {
     let sqlite: Database;
     let env: Env;
     let app: Hono<{ Bindings: Env; Variables: Variables }>;
+    let clientConfig: Awaited<ReturnType<typeof setupTestApp>>['clientConfig'];
     const originalFetch = globalThis.fetch;
 
     beforeEach(async () => {
@@ -18,6 +19,7 @@ describe('CommentService', () => {
         sqlite = ctx.sqlite;
         env = ctx.env;
         app = ctx.app;
+        clientConfig = ctx.clientConfig;
         
         // Seed test data
         await seedTestData(sqlite);
@@ -374,6 +376,69 @@ describe('CommentService', () => {
 
             const comments = sqlite.prepare(`SELECT * FROM comments WHERE feed_id = 1`).all();
             expect(comments.length).toBe(3);
+        });
+    });
+
+    describe('Guest comment moderation', () => {
+        it('should keep guest comments pending when moderation is enabled', async () => {
+            await clientConfig.set('comment.moderation.guest', true);
+
+            const res = await app.request('/1', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    content: 'Pending guest comment',
+                    guestName: 'Guest',
+                    guestEmail: 'guest@example.com',
+                }),
+            }, env);
+
+            expect(res.status).toBe(200);
+            expect(await res.text()).toBe('Pending moderation');
+
+            const publicList = await app.request('/1', { method: 'GET' }, env);
+            const publicComments = await publicList.json() as any[];
+            expect(publicComments.some((item) => item.content === 'Pending guest comment')).toBe(false);
+
+            const adminList = await app.request('/1', {
+                method: 'GET',
+                headers: { 'Authorization': 'Bearer mock_token_3' },
+            }, env);
+            const adminComments = await adminList.json() as any[];
+            const pending = adminComments.find((item) => item.content === 'Pending guest comment');
+            expect(pending).toBeDefined();
+            expect(pending.approved).toBe(false);
+        });
+
+        it('should approve pending guest comments for admin', async () => {
+            await clientConfig.set('comment.moderation.guest', true);
+
+            await app.request('/1', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    content: 'Approve me',
+                    guestName: 'Guest',
+                    guestEmail: 'guest@example.com',
+                }),
+            }, env);
+
+            const adminList = await (await app.request('/1', {
+                method: 'GET',
+                headers: { 'Authorization': 'Bearer mock_token_3' },
+            }, env)).json() as any[];
+            const pending = adminList.find((item) => item.content === 'Approve me');
+            expect(pending).toBeDefined();
+
+            const approveRes = await app.request(`/approve/${pending.id}`, {
+                method: 'PATCH',
+                headers: { 'Authorization': 'Bearer mock_token_3' },
+            }, env);
+            expect(approveRes.status).toBe(200);
+
+            const publicList = await app.request('/1', { method: 'GET' }, env);
+            const publicComments = await publicList.json() as any[];
+            expect(publicComments.some((item) => item.content === 'Approve me')).toBe(true);
         });
     });
 
