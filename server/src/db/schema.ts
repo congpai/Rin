@@ -29,6 +29,20 @@ export const moments = sqliteTable("moments", {
     updatedAt: updated_at
 });
 
+export const momentComments = sqliteTable("moment_comments", {
+    id: integer("id").primaryKey(),
+    momentId: integer("moment_id").references(() => moments.id, { onDelete: "cascade" }).notNull(),
+    userId: integer("user_id").references(() => users.id, { onDelete: "cascade" }),
+    content: text("content").notNull(),
+    guestName: text("guest_name").default(""),
+    guestEmail: text("guest_email").default(""),
+    guestWebsite: text("guest_website").default(""),
+    parentId: integer("parent_id"),
+    approved: integer("approved").default(1).notNull(),
+    createdAt: created_at,
+    updatedAt: updated_at,
+});
+
 export const visits = sqliteTable("visits", {
     id: integer("id").primaryKey(),
     feedId: integer("feed_id").references(() => feeds.id, { onDelete: 'cascade' }).notNull(),
@@ -81,6 +95,7 @@ export const comments = sqliteTable("comments", {
     guestName: text("guest_name").default(""),
     guestEmail: text("guest_email").default(""),
     guestWebsite: text("guest_website").default(""),
+    parentId: integer("parent_id"),
     approved: integer("approved").default(1).notNull(),
     createdAt: created_at,
     updatedAt: updated_at,
@@ -121,14 +136,32 @@ export const feedsRelations = relations(feeds, ({ many, one }) => ({
     comments: many(comments),
 }));
 
-export const momentsRelations = relations(moments, ({ one }) => ({
+export const momentsRelations = relations(moments, ({ one, many }) => ({
     user: one(users, {
         fields: [moments.uid],
         references: [users.id],
-    })
+    }),
+    comments: many(momentComments),
 }));
 
-export const commentsRelations = relations(comments, ({ one }) => ({
+export const momentCommentsRelations = relations(momentComments, ({ one, many }) => ({
+    moment: one(moments, {
+        fields: [momentComments.momentId],
+        references: [moments.id],
+    }),
+    user: one(users, {
+        fields: [momentComments.userId],
+        references: [users.id],
+    }),
+    parent: one(momentComments, {
+        fields: [momentComments.parentId],
+        references: [momentComments.id],
+        relationName: "momentCommentReplies",
+    }),
+    replies: many(momentComments, { relationName: "momentCommentReplies" }),
+}));
+
+export const commentsRelations = relations(comments, ({ one, many }) => ({
     feed: one(feeds, {
         fields: [comments.feedId],
         references: [feeds.id],
@@ -137,6 +170,12 @@ export const commentsRelations = relations(comments, ({ one }) => ({
         fields: [comments.userId],
         references: [users.id],
     }),
+    parent: one(comments, {
+        fields: [comments.parentId],
+        references: [comments.id],
+        relationName: "commentReplies",
+    }),
+    replies: many(comments, { relationName: "commentReplies" }),
 }));
 
 export const hashtagsRelations = relations(hashtags, ({ many }) => ({
