@@ -102,7 +102,8 @@
     "title": "コメント",
     "guest_name_required": "ゲスト名は必須です",
     "guest_name_placeholder": "名前（必須）",
-    "guest_email_placeholder": "メール（任意）",
+    "guest_email_required": "メールアドレスは必須です",
+    "guest_email_placeholder": "メール（必須）",
     "guest_website_placeholder": "ウェブサイト（任意）"
   },
   "comparison": "対比",
