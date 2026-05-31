@@ -1,4 +1,4 @@
-import { useContext, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState, type RefObject } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "wouter";
 import { useAlert } from "../dialog";
@@ -13,14 +13,24 @@ export type CommentSubmitPayload = {
     guestName?: string;
     guestEmail?: string;
     guestWebsite?: string;
+    parentId?: number;
 };
 
 type CommentComposerProps = {
     onSubmit: (payload: CommentSubmitPayload) => Promise<{ error?: string }>;
     placeholder?: string;
+    replyTo?: { id: number; name: string } | null;
+    onCancelReply?: () => void;
+    composerRef?: RefObject<HTMLDivElement | null>;
 };
 
-export function CommentComposer({ onSubmit, placeholder }: CommentComposerProps) {
+export function CommentComposer({
+    onSubmit,
+    placeholder,
+    replyTo,
+    onCancelReply,
+    composerRef,
+}: CommentComposerProps) {
     const { t } = useTranslation();
     const cachedGuest = readGuestCommentProfile();
     const [content, setContent] = useState("");
@@ -40,6 +50,12 @@ export function CommentComposer({ onSubmit, placeholder }: CommentComposerProps)
 
     const rawGuest = config.get("comment.guest.enabled");
     const guestEnabled = rawGuest !== false && rawGuest !== "false";
+
+    useEffect(() => {
+        if (!replyTo) return;
+        composerRef?.current?.scrollIntoView({ behavior: "smooth", block: "center" });
+        requestAnimationFrame(() => textareaRef.current?.focus());
+    }, [replyTo, composerRef]);
 
     function insertAtCursor(text: string) {
         const el = textareaRef.current;
@@ -63,6 +79,9 @@ export function CommentComposer({ onSubmit, placeholder }: CommentComposerProps)
         if (msg === "Content is required") return t("comment.empty");
         if (msg === "Guest name is required") return t("comment.guest_name_required");
         if (msg === "Guest email is required") return t("comment.guest_email_required");
+        if (msg === "Parent comment not found") return t("comment.parent_not_found");
+        if (msg === "Invalid parent comment") return t("comment.invalid_parent");
+        if (msg === "Nested replies are not supported") return t("comment.nested_reply_not_supported");
         return msg;
     }
 
@@ -99,6 +118,7 @@ export function CommentComposer({ onSubmit, placeholder }: CommentComposerProps)
             guestName: profile ? undefined : guestName.trim(),
             guestEmail: profile ? undefined : guestEmail.trim(),
             guestWebsite: profile ? undefined : guestWebsite.trim() || undefined,
+            parentId: replyTo?.id,
         });
         setBusy(false);
 
@@ -127,51 +147,11 @@ export function CommentComposer({ onSubmit, placeholder }: CommentComposerProps)
         }
     }
 
-    const toolbar = (
-        <div className="relative mb-2 flex flex-wrap items-center gap-2">
-            <button
-                type="button"
-                aria-label="emoji"
-                className="rounded-full bg-secondary px-3 py-1.5 text-sm hover:bg-button"
-                onClick={() => setShowEmoji((v) => !v)}
-            >
-                😀
-            </button>
-            {showEmoji ? (
-                <EmojiPicker
-                    onPick={(emoji) => {
-                        insertAtCursor(emoji);
-                        setShowEmoji(false);
-                    }}
-                />
-            ) : null}
-            {profile ? (
-                <>
-                    <button
-                        type="button"
-                        disabled={uploading}
-                        className="rounded-full bg-secondary px-3 py-1.5 text-sm hover:bg-button disabled:opacity-50"
-                        onClick={() => fileRef.current?.click()}
-                    >
-                        {uploading ? t("uploading") : t("upload.title")}
-                    </button>
-                    <input
-                        ref={fileRef}
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) void handleImageUpload(file);
-                        }}
-                    />
-                </>
-            ) : null}
-        </div>
-    );
-
     return (
-        <div className="flex w-full flex-col items-end rounded-2xl bg-w p-4 t-primary sm:p-6">
+        <div
+            ref={composerRef}
+            className="flex w-full flex-col rounded-2xl bg-w p-4 t-primary sm:p-6"
+        >
             <div className="mb-3 flex w-full flex-col items-start">
                 <label htmlFor="comment-composer">{t("comment.title")}</label>
             </div>
@@ -206,26 +186,98 @@ export function CommentComposer({ onSubmit, placeholder }: CommentComposerProps)
                 </>
             ) : null}
 
-            {toolbar}
-
-            <textarea
-                ref={textareaRef}
-                id="comment-composer"
-                placeholder={placeholder ?? t("comment.placeholder.title")}
-                className="h-24 w-full rounded-lg bg-w"
-                value={content}
-                onChange={(e) => setContent(e.target.value)}
-            />
-
-            <button
-                className="mt-4 rounded-full bg-theme px-4 py-2 text-white disabled:opacity-50"
-                disabled={busy || uploading}
-                onClick={() => void handleSubmit()}
+            <div
+                className={`mb-3 flex w-full overflow-hidden rounded-lg border bg-w ${
+                    replyTo
+                        ? "border-theme/40 ring-1 ring-theme/20"
+                        : "border-gray-200 dark:border-gray-700"
+                }`}
             >
-                {t("comment.submit")}
-            </button>
+                {replyTo ? (
+                    <div className="flex shrink-0 items-start border-r border-gray-200 bg-secondary/60 px-3 py-3 dark:border-gray-700">
+                        <span className="whitespace-nowrap text-sm font-medium text-theme">
+                            @{replyTo.name}
+                        </span>
+                        {onCancelReply ? (
+                            <button
+                                type="button"
+                                className="ml-2 text-gray-400 hover:text-theme"
+                                aria-label={t("comment.cancel_reply")}
+                                onClick={onCancelReply}
+                            >
+                                ×
+                            </button>
+                        ) : null}
+                    </div>
+                ) : null}
+                <textarea
+                    ref={textareaRef}
+                    id="comment-composer"
+                    placeholder={
+                        replyTo
+                            ? t("comment.reply_placeholder", { name: replyTo.name })
+                            : (placeholder ?? t("comment.placeholder.title"))
+                    }
+                    className="min-h-24 flex-1 resize-y bg-transparent px-3 py-2 outline-none"
+                    value={content}
+                    onChange={(e) => setContent(e.target.value)}
+                />
+            </div>
 
-            {error ? <p className="mt-2 text-sm text-red-500">{error}</p> : null}
+            <div className="relative flex w-full items-center gap-2">
+                <div className="relative flex items-center gap-2">
+                    <button
+                        type="button"
+                        aria-label="emoji"
+                        className="rounded-full bg-secondary px-3 py-1.5 text-sm hover:bg-button"
+                        onClick={() => setShowEmoji((v) => !v)}
+                    >
+                        😀
+                    </button>
+                    {showEmoji ? (
+                        <div className="absolute bottom-full left-0 z-10 mb-2">
+                            <EmojiPicker
+                                onPick={(emoji) => {
+                                    insertAtCursor(emoji);
+                                    setShowEmoji(false);
+                                }}
+                            />
+                        </div>
+                    ) : null}
+                    {profile ? (
+                        <>
+                            <button
+                                type="button"
+                                disabled={uploading}
+                                className="rounded-full bg-secondary px-3 py-1.5 text-sm hover:bg-button disabled:opacity-50"
+                                onClick={() => fileRef.current?.click()}
+                            >
+                                {uploading ? t("uploading") : t("upload.title")}
+                            </button>
+                            <input
+                                ref={fileRef}
+                                type="file"
+                                accept="image/*"
+                                className="hidden"
+                                onChange={(e) => {
+                                    const file = e.target.files?.[0];
+                                    if (file) void handleImageUpload(file);
+                                }}
+                            />
+                        </>
+                    ) : null}
+                </div>
+                <div className="flex-1" />
+                <button
+                    className="shrink-0 rounded-full bg-theme px-4 py-2 text-white disabled:opacity-50"
+                    disabled={busy || uploading}
+                    onClick={() => void handleSubmit()}
+                >
+                    {t(replyTo ? "comment.submit_reply" : "comment.submit")}
+                </button>
+            </div>
+
+            {error ? <p className="mt-2 w-full text-sm text-red-500">{error}</p> : null}
             <AlertUI />
         </div>
     );
