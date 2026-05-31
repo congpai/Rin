@@ -9,15 +9,29 @@ export type CommentThread<T extends ThreadComment = ThreadComment> = {
     replies: T[];
 };
 
+function normalizeParentId(parentId: unknown): number | null {
+    if (parentId == null || parentId === "" || parentId === 0) {
+        return null;
+    }
+    const parsed = typeof parentId === "number" ? parentId : parseInt(String(parentId), 10);
+    return Number.isFinite(parsed) && parsed > 0 ? parsed : null;
+}
+
 export function groupCommentThreads<T extends ThreadComment>(comments: T[]): CommentThread<T>[] {
+    const byId = new Map<number, T>();
+    for (const comment of comments) {
+        byId.set(comment.id, comment);
+    }
+
     const roots: T[] = [];
     const repliesByParent = new Map<number, T[]>();
 
     for (const comment of comments) {
-        if (comment.parentId) {
-            const list = repliesByParent.get(comment.parentId) ?? [];
+        const parentId = normalizeParentId(comment.parentId);
+        if (parentId != null && byId.has(parentId)) {
+            const list = repliesByParent.get(parentId) ?? [];
             list.push(comment);
-            repliesByParent.set(comment.parentId, list);
+            repliesByParent.set(parentId, list);
         } else {
             roots.push(comment);
         }
