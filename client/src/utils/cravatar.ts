@@ -106,14 +106,11 @@ function md5(input: string): string {
 
 export function getCravatarUrl(
     email: string,
-    options?: { size?: number; defaultUrl?: string },
+    options?: { size?: number },
 ): string {
     const hash = md5(email.trim().toLowerCase());
     const size = options?.size ?? 64;
     const params = new URLSearchParams({ s: String(size), r: "g" });
-    if (options?.defaultUrl) {
-        params.set("d", options.defaultUrl);
-    }
     return `https://cravatar.cn/avatar/${hash}?${params.toString()}`;
 }
 
@@ -121,7 +118,7 @@ export function getCravatarUrl(
 export function resolveCommentAvatar(options: {
     userAvatar?: string | null;
     guestEmail?: string;
-    /** Site default avatar from `site.avatar` */
+    /** Fallback when guest has no email (legacy comments) */
     defaultAvatar?: string;
     size?: number;
 }): string {
@@ -129,14 +126,9 @@ export function resolveCommentAvatar(options: {
         return options.userAvatar;
     }
 
-    const fallback = options.defaultAvatar?.trim() ?? "";
-
     if (options.guestEmail?.trim()) {
-        return getCravatarUrl(options.guestEmail, {
-            size: options.size,
-            defaultUrl: fallback || undefined,
-        });
+        return getCravatarUrl(options.guestEmail, { size: options.size });
     }
 
-    return fallback;
+    return options.defaultAvatar?.trim() ?? "";
 }
