@@ -178,6 +178,8 @@ export interface Comment {
   guestEmail?: string;
   /** 游客评论的网站 */
   guestWebsite?: string;
+  /** 回复的父评论 ID（一层楼中楼） */
+  parentId?: number | null;
   /** 审核状态 */
   approved: boolean;
 }
@@ -186,10 +188,12 @@ export interface CreateCommentRequest {
   content: string;
   /** 游客昵称（未登录时必填） */
   guestName?: string;
-  /** 游客邮箱（可选） */
+  /** 游客邮箱（未登录时必填） */
   guestEmail?: string;
   /** 游客网站（可选） */
   guestWebsite?: string;
+  /** 回复的父评论 ID */
+  parentId?: number;
 }
 
 // ============================================================================
