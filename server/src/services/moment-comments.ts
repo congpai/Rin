@@ -5,13 +5,14 @@ import { profileAsync } from "../core/server-timing";
 import { momentComments, moments, users } from "../db/schema";
 import { notify } from "../utils/webhook";
 import { resolveWebhookConfig } from "./config-helpers";
-import { resolveMomentCommentParentId } from "../utils/comment-parent";
+import { resolveMomentCommentReplyContext } from "../utils/comment-parent";
 
 function formatCommentRow(row: any) {
     if (row.user) {
         return {
             ...row,
             parentId: row.parentId ?? null,
+            replyToId: row.replyToId ?? null,
         };
     }
     const { user, ...rest } = row;
@@ -19,6 +20,7 @@ function formatCommentRow(row: any) {
         ...rest,
         user: null,
         parentId: rest.parentId ?? null,
+        replyToId: rest.replyToId ?? null,
         guestName: rest.guestName || "",
         guestEmail: rest.guestEmail || "",
         guestWebsite: rest.guestWebsite || "",
@@ -55,15 +57,15 @@ export function MomentCommentService(): Hono {
         const uid = c.get("uid");
         const momentId = parseInt(c.req.param("moment"));
         const body = await profileAsync(c, "moment_comment_create_parse", () => c.req.json());
-        const { content, guestName, guestEmail, guestWebsite, parentId } = body;
+        const { content, guestName, guestEmail, guestWebsite, parentId, replyToId } = body;
 
         if (!content?.trim()) {
             return c.text("Content is required", 400);
         }
 
-        const parentResult = await resolveMomentCommentParentId(db, momentId, parentId);
-        if ("error" in parentResult) {
-            return c.text(parentResult.error, 400);
+        const replyContext = await resolveMomentCommentReplyContext(db, momentId, parentId, replyToId);
+        if ("error" in replyContext) {
+            return c.text(replyContext.error, 400);
         }
 
         const moment = await profileAsync(c, "moment_comment_create_lookup", () =>
@@ -87,7 +89,8 @@ export function MomentCommentService(): Hono {
                 momentId,
                 userId: uid,
                 content: content.trim(),
-                parentId: parentResult.parentId,
+                parentId: replyContext.parentId,
+                replyToId: replyContext.replyToId,
             });
 
             const { webhookUrl, webhookMethod, webhookContentType, webhookHeaders, webhookBodyTemplate } =
@@ -136,7 +139,8 @@ export function MomentCommentService(): Hono {
             guestName: guestName.trim(),
             guestEmail: guestEmail?.trim() || "",
             guestWebsite: guestWebsite?.trim() || "",
-            parentId: parentResult.parentId,
+            parentId: replyContext.parentId,
+            replyToId: replyContext.replyToId,
             approved: 1,
         });
 
