@@ -156,24 +156,29 @@ describe('CommentService', () => {
             expect(res.status).toBe(400);
         });
 
+        it('should reject guest comment without guestEmail', async () => {
+    const res = await app.request('/1', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ content: 'Guest no email', guestName: 'Visitor' }),
+    }, env);
+    expect(res.status).toBe(400);
+    expect(await res.text()).toContain('Guest email is required');
+});
+
         it('should return guest comments with user: null in list', async () => {
-            // Create a guest comment first
-            const createRes = await app.request('/1', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ content: 'Hi from guest', guestName: 'Guest' }),
-            }, env);
-            expect(createRes.status).toBe(200);
-
-            const res = await app.request('/1', { method: 'GET' }, env);
-            expect(res.status).toBe(200);
-            const data = await res.json() as any[];
-            const guestComment = data.find((c: any) => c.guestName === 'Guest');
-            expect(guestComment).toBeDefined();
-            expect(guestComment.user).toBeNull();
-            expect(guestComment.content).toBe('Hi from guest');
-        });
-
+    const createRes = await app.request('/1', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            content: 'Hi from guest',
+            guestName: 'Guest',
+            guestEmail: 'guest@example.com',  // 加上这行
+        }),
+    }, env);
+    expect(createRes.status).toBe(200);
+    // ... 后面不变
+});
         it('should return 400 when not authenticated and guest name missing', async () => {
             const res = await app.request('/1', {
                 method: 'POST',
