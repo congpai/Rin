@@ -442,6 +442,14 @@ export function Settings() {
             }}
           />
           <ItemSwitch
+            title={t("settings.comment.moderation.guest.title")}
+            description={t("settings.comment.moderation.guest.desc")}
+            checked={clientConfig.getBoolean("comment.moderation.guest")}
+            onChange={(checked) => {
+              setConfigValue("client", "comment.moderation.guest", checked);
+            }}
+          />
+          <ItemSwitch
             title={t("settings.counter.enable.title")}
             description={t("settings.counter.enable.desc")}
             checked={clientConfig.getBoolean("counter.enabled")}
