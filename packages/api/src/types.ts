@@ -180,6 +180,8 @@ export interface Comment {
   guestWebsite?: string;
   /** 回复的父评论 ID（一层楼中楼） */
   parentId?: number | null;
+  /** 展示用：正在回复哪条评论（同线程内） */
+  replyToId?: number | null;
   /** 审核状态 */
   approved: boolean;
 }
@@ -192,8 +194,10 @@ export interface CreateCommentRequest {
   guestEmail?: string;
   /** 游客网站（可选） */
   guestWebsite?: string;
-  /** 回复的父评论 ID */
+  /** 回复的父评论 ID（主评论） */
   parentId?: number;
+  /** 展示用：正在回复哪条评论 */
+  replyToId?: number;
 }
 
 // ============================================================================

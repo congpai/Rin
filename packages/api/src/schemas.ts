@@ -66,6 +66,7 @@ export const commentCreateSchema = t.Object({
   guestEmail: t.String({ optional: true }),
   guestWebsite: t.String({ optional: true }),
   parentId: t.Numeric({ optional: true }),
+  replyToId: t.Numeric({ optional: true }),
 });
 
 // ============================================================================
