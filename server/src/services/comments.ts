@@ -5,13 +5,14 @@ import { comments, feeds, users } from "../db/schema";
 import { profileAsync } from "../core/server-timing";
 import { notify } from "../utils/webhook";
 import { resolveWebhookConfig } from "./config-helpers";
-import { resolveFeedCommentParentId } from "../utils/comment-parent";
+import { resolveFeedCommentReplyContext } from "../utils/comment-parent";
 
 function formatCommentRow(row: any) {
     if (row.user) {
         return {
             ...row,
             parentId: row.parentId ?? null,
+            replyToId: row.replyToId ?? null,
         };
     }
     const { user, ...rest } = row;
@@ -19,6 +20,7 @@ function formatCommentRow(row: any) {
         ...rest,
         user: null,
         parentId: rest.parentId ?? null,
+        replyToId: rest.replyToId ?? null,
         guestName: rest.guestName || "",
         guestEmail: rest.guestEmail || "",
         guestWebsite: rest.guestWebsite || "",
@@ -56,15 +58,15 @@ export function CommentService(): Hono {
         const uid = c.get('uid');
         const feedId = parseInt(c.req.param('feed'));
         const body = await profileAsync(c, 'comment_create_parse', () => c.req.json());
-        const { content, guestName, guestEmail, guestWebsite, parentId } = body;
+        const { content, guestName, guestEmail, guestWebsite, parentId, replyToId } = body;
         
         if (!content) {
             return c.text('Content is required', 400);
         }
 
-        const parentResult = await resolveFeedCommentParentId(db, feedId, parentId);
-        if ("error" in parentResult) {
-            return c.text(parentResult.error, 400);
+        const replyContext = await resolveFeedCommentReplyContext(db, feedId, parentId, replyToId);
+        if ("error" in replyContext) {
+            return c.text(replyContext.error, 400);
         }
         
         const exist = await profileAsync(c, 'comment_create_feed', () => db.query.feeds.findFirst({ where: eq(feeds.id, feedId) }));
@@ -83,7 +85,8 @@ export function CommentService(): Hono {
                 feedId,
                 userId: uid,
                 content,
-                parentId: parentResult.parentId,
+                parentId: replyContext.parentId,
+                replyToId: replyContext.replyToId,
             });
 
             const { webhookUrl, webhookMethod, webhookContentType, webhookHeaders, webhookBodyTemplate } =
@@ -128,7 +131,8 @@ export function CommentService(): Hono {
             guestName: guestName.trim(),
             guestEmail: guestEmail?.trim() || "",
             guestWebsite: guestWebsite?.trim() || "",
-            parentId: parentResult.parentId,
+            parentId: replyContext.parentId,
+            replyToId: replyContext.replyToId,
             approved: 1,
         });
 
