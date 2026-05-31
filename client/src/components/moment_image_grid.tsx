@@ -24,11 +24,11 @@ export function MomentImageGrid({ images }: MomentImageGridProps) {
     const cols = momentGridCols(visible.length);
 
     const gridClass =
-        cols === 1
-            ? "grid max-w-[280px] grid-cols-1 gap-1"
-            : cols === 2
-              ? "grid max-w-[360px] grid-cols-2 gap-1"
-              : "grid max-w-[360px] grid-cols-3 gap-1";
+    cols === 1
+        ? "grid w-full grid-cols-1 gap-1"
+        : cols === 2
+          ? "grid w-full grid-cols-2 gap-1"
+          : "grid w-full grid-cols-3 gap-1";
 
     const slides = images.map((img) => ({
         src: img.cleanUrl,
