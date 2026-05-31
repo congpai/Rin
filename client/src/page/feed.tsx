@@ -391,6 +391,7 @@ function CommentInput({
     if (error === "Unauthorized") return t("login.required");
     else if (error === "Content is required") return t("comment.empty");
     else if (error === "Guest name is required") return t("comment.guest_name_required");
+    else if (error === "Guest email is required") return t("comment.guest_email_required");
     return error;
   }
   function submit() {
@@ -413,11 +414,15 @@ function CommentInput({
         setError(t("comment.guest_name_required"));
         return;
       }
+      if (!guestEmail.trim()) {
+        setError(t("comment.guest_email_required"));
+        return;
+      }
       client.comment
         .create(parseInt(id), {
           content,
           guestName: guestName.trim(),
-          guestEmail: guestEmail.trim() || undefined,
+          guestEmail: guestEmail.trim(),
           guestWebsite: guestWebsite.trim() || undefined,
         })
         .then(({ error }) => {
@@ -467,6 +472,7 @@ function CommentInput({
         />
         <input
           type="email"
+          required
           placeholder={t("comment.guest_email_placeholder")}
           className="bg-w w-full rounded-lg px-3 py-2 mb-2 border border-gray-200 dark:border-gray-700"
           value={guestEmail}
