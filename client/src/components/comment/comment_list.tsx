@@ -146,72 +146,74 @@ function CommentReplyTail({
 
                 return (
                     <div key={reply.id} className="group py-1">
-                        <div className="flex items-start gap-2">
-                            <div className="min-w-0 flex-1 break-words leading-relaxed t-primary">
-                                <ClickableUser
-                                    name={name}
-                                    avatar={commentAvatar(reply, defaultAvatar)}
-                                    onClick={
-                                        onReply
-                                            ? () => onReply(buildReplyTarget(root, reply, anonymous))
-                                            : undefined
-                                    }
-                                />
-                                <span className="t-secondary"> {t("comment.reply_action")} </span>
-                                <ClickableUser
-                                    name={targetName}
-                                    avatar={commentAvatar(target, defaultAvatar)}
-                                    onClick={
-                                        onReply
-                                            ? () => onReply(buildReplyTarget(root, target, anonymous))
-                                            : undefined
-                                    }
-                                />
-                                <span className="t-secondary">：</span>
-                                {text ? <span>{text}</span> : null}
-                            </div>
-                            <span
-                                title={new Date(reply.createdAt).toLocaleString()}
-                                className="ml-auto shrink-0 pt-0.5 text-xs whitespace-nowrap text-gray-400"
-                            >
-                                {timeago(reply.createdAt)}
-                            </span>
-                            {canDelete ? (
-                                <Popup
-                                    arrow={false}
-                                    trigger={
+                        <div className="min-w-0 overflow-hidden break-words leading-relaxed t-primary">
+                            <div className="float-right ml-2 flex shrink-0 items-center gap-1 pl-1">
+                                <span
+                                    title={new Date(reply.createdAt).toLocaleString()}
+                                    className="text-xs whitespace-nowrap text-gray-400"
+                                >
+                                    {timeago(reply.createdAt)}
+                                </span>
+                                {canDelete ? (
+                                    <Popup
+                                        arrow={false}
+                                        trigger={
+                                            <button
+                                                type="button"
+                                                className="rounded px-1 opacity-0 transition group-hover:opacity-100"
+                                                aria-label={t("delete.comment.title")}
+                                            >
+                                                <i className="ri-more-fill text-xs t-secondary" />
+                                            </button>
+                                        }
+                                        position="left center"
+                                    >
                                         <button
                                             type="button"
-                                            className="shrink-0 rounded px-1 opacity-0 transition group-hover:opacity-100"
-                                            aria-label={t("delete.comment.title")}
+                                            className="rounded-full bg-secondary px-2 py-1"
+                                            onClick={() =>
+                                                showConfirm(
+                                                    t("delete.comment.title"),
+                                                    t("delete.comment.confirm"),
+                                                    () => {
+                                                        void onDelete(reply.id).then(({ error }) => {
+                                                            if (error) {
+                                                                showAlert(error);
+                                                            } else {
+                                                                showAlert(t("delete.success"), onRefresh);
+                                                            }
+                                                        });
+                                                    },
+                                                )
+                                            }
                                         >
-                                            <i className="ri-more-fill text-xs t-secondary" />
+                                            <i className="ri-delete-bin-2-line t-secondary" />
                                         </button>
-                                    }
-                                    position="left center"
-                                >
-                                    <button
-                                        type="button"
-                                        className="rounded-full bg-secondary px-2 py-1"
-                                        onClick={() =>
-                                            showConfirm(
-                                                t("delete.comment.title"),
-                                                t("delete.comment.confirm"),
-                                                () => {
-                                                    void onDelete(reply.id).then(({ error }) => {
-                                                        if (error) {
-                                                            showAlert(error);
-                                                        } else {
-                                                            showAlert(t("delete.success"), onRefresh);
-                                                        }
-                                                    });
-                                                },
-                                            )
-                                        }
-                                    >
-                                        <i className="ri-delete-bin-2-line t-secondary" />
-                                    </button>
-                                </Popup>
+                                    </Popup>
+                                ) : null}
+                            </div>
+                            <ClickableUser
+                                name={name}
+                                avatar={commentAvatar(reply, defaultAvatar)}
+                                onClick={
+                                    onReply
+                                        ? () => onReply(buildReplyTarget(root, reply, anonymous))
+                                        : undefined
+                                }
+                            />
+                            <span className="t-secondary"> {t("comment.reply_action")} </span>
+                            <ClickableUser
+                                name={targetName}
+                                avatar={commentAvatar(target, defaultAvatar)}
+                                onClick={
+                                    onReply
+                                        ? () => onReply(buildReplyTarget(root, target, anonymous))
+                                        : undefined
+                                }
+                            />
+                            <span className="t-secondary">：</span>
+                            {text ? (
+                                <span className="break-all [overflow-wrap:anywhere]">{text}</span>
                             ) : null}
                         </div>
                         <CommentTailImages content={reply.content} />
