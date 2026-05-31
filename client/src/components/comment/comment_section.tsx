@@ -2,7 +2,7 @@ import { useContext, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { ClientConfigContext } from "../../state/config";
 import { CommentComposer } from "./comment_composer";
-import { CommentList, type CommentRecord } from "./comment_list";
+import { CommentList, type CommentRecord, type CommentReplyTarget } from "./comment_list";
 
 type CommentSectionProps = {
     enabled: boolean;
@@ -13,6 +13,7 @@ type CommentSectionProps = {
         guestEmail?: string;
         guestWebsite?: string;
         parentId?: number;
+        replyToId?: number;
     }) => Promise<{ error?: string }>;
     deleteComment: (id: number) => Promise<{ error?: string }>;
     lazy?: boolean;
@@ -32,7 +33,7 @@ export function CommentSection({
     const [comments, setComments] = useState<CommentRecord[]>([]);
     const [error, setError] = useState("");
     const [loaded, setLoaded] = useState(!lazy);
-    const [replyTo, setReplyTo] = useState<{ id: number; name: string } | null>(null);
+    const [replyTo, setReplyTo] = useState<CommentReplyTarget | null>(null);
     const ref = useRef(false);
 
     function refresh() {
@@ -93,12 +94,7 @@ export function CommentSection({
                     comments={comments}
                     onDelete={deleteComment}
                     onRefresh={() => void refresh()}
-                    onReply={(comment) =>
-                        setReplyTo({
-                            id: comment.id,
-                            name: comment.user?.username || comment.guestName || t("anonymous"),
-                        })
-                    }
+                    onReply={setReplyTo}
                 />
             ) : null}
         </div>

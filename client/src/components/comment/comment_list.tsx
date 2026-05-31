@@ -7,7 +7,7 @@ import { useSiteConfig } from "../../hooks/useSiteConfig";
 import { resolveCommentAvatar } from "../../utils/cravatar";
 import { groupCommentThreads } from "../../utils/comment-thread";
 import { timeago } from "../../utils/timeago";
-import { CommentContent } from "./comment_content";
+import { CommentContent, CommentTailContent } from "./comment_content";
 
 export type CommentRecord = {
     id: number;
@@ -15,6 +15,7 @@ export type CommentRecord = {
     createdAt: Date | string;
     updatedAt?: Date | string;
     parentId?: number | null;
+    replyToId?: number | null;
     user?: {
         id: number;
         username: string;
@@ -26,60 +27,149 @@ export type CommentRecord = {
     guestWebsite?: string;
 };
 
+export type CommentReplyTarget = {
+    parentId: number;
+    replyToId: number;
+    name: string;
+};
+
 type CommentListProps = {
     comments: CommentRecord[];
     onDelete: (id: number) => Promise<{ error?: string }>;
     onRefresh: () => void;
-    onReply?: (comment: CommentRecord) => void;
+    onReply?: (target: CommentReplyTarget) => void;
 };
 
 function commentName(comment: CommentRecord, anonymous: string) {
     return comment.user?.username || comment.guestName || anonymous;
 }
 
-function replyPreview(content: string, imageTag: string) {
-    return content
-        .replace(/!\[.*?\]\(\S+?(?:\s+"[^"]*")?\)/g, imageTag)
-        .replace(/\s+/g, " ")
-        .trim();
+function commentAvatar(comment: CommentRecord, defaultAvatar: string) {
+    return resolveCommentAvatar({
+        userAvatar: comment.user?.avatar,
+        guestEmail: comment.guestEmail,
+        defaultAvatar,
+    });
+}
+
+function buildReplyTarget(
+    root: CommentRecord,
+    replyTo: CommentRecord,
+    anonymous: string,
+): CommentReplyTarget {
+    return {
+        parentId: root.id,
+        replyToId: replyTo.id,
+        name: commentName(replyTo, anonymous),
+    };
+}
+
+function resolveReplyTargetComment(
+    reply: CommentRecord,
+    root: CommentRecord,
+    byId: Map<number, CommentRecord>,
+): CommentRecord {
+    const targetId = reply.replyToId ?? root.id;
+    return byId.get(targetId) ?? root;
+}
+
+function ClickableUser({
+    name,
+    avatar,
+    onClick,
+}: {
+    name: string;
+    avatar: string;
+    onClick?: () => void;
+}) {
+    const inner = (
+        <>
+            <img
+                src={avatar}
+                alt=""
+                className="h-4 w-4 shrink-0 rounded-full object-cover"
+            />
+            <span className="font-semibold text-theme">{name}</span>
+        </>
+    );
+
+    if (!onClick) {
+        return (
+            <span className="inline-flex items-center gap-1 align-middle">{inner}</span>
+        );
+    }
+
+    return (
+        <button
+            type="button"
+            className="inline-flex items-center gap-1 align-middle hover:opacity-80"
+            onClick={onClick}
+        >
+            {inner}
+        </button>
+    );
 }
 
 function CommentReplyTail({
-    rootName,
+    root,
     replies,
+    byId,
+    defaultAvatar,
     onDelete,
     onRefresh,
+    onReply,
 }: {
-    rootName: string;
+    root: CommentRecord;
     replies: CommentRecord[];
+    byId: Map<number, CommentRecord>;
+    defaultAvatar: string;
     onDelete: (id: number) => Promise<{ error?: string }>;
     onRefresh: () => void;
+    onReply?: (target: CommentReplyTarget) => void;
 }) {
     const { t } = useTranslation();
     const { showConfirm, ConfirmUI } = useConfirm();
     const { showAlert, AlertUI } = useAlert();
     const profile = useContext(ProfileContext);
-    const imageTag = t("comment.image_tag");
+    const anonymous = t("anonymous");
 
     return (
         <div className="mt-3 rounded-lg bg-secondary/80 px-3 py-2 text-sm leading-relaxed">
             {replies.map((reply) => {
-                const name = commentName(reply, t("anonymous"));
-                const text = replyPreview(reply.content, imageTag);
+                const name = commentName(reply, anonymous);
+                const target = resolveReplyTargetComment(reply, root, byId);
+                const targetName = commentName(target, anonymous);
                 const canDelete =
                     profile?.permission ||
                     (reply.user && profile?.id === reply.user.id);
 
                 return (
-                    <div key={reply.id} className="group flex items-start gap-1 py-0.5">
-                        <p className="flex-1 break-words t-primary">
-                            <span className="font-semibold text-theme">{name}</span>
-                            <span className="t-secondary">
-                                {" "}
-                                {t("comment.reply_action")} {rootName}：
-                            </span>
-                            <span>{text}</span>
-                        </p>
+                    <div key={reply.id} className="group flex items-start gap-1 py-1">
+                        <div className="min-w-0 flex-1 break-words t-primary">
+                            <p className="flex flex-wrap items-center gap-x-1 gap-y-0.5">
+                                <ClickableUser
+                                    name={name}
+                                    avatar={commentAvatar(reply, defaultAvatar)}
+                                    onClick={
+                                        onReply
+                                            ? () => onReply(buildReplyTarget(root, reply, anonymous))
+                                            : undefined
+                                    }
+                                />
+                                <span className="t-secondary">{t("comment.reply_action")}</span>
+                                <ClickableUser
+                                    name={targetName}
+                                    avatar={commentAvatar(target, defaultAvatar)}
+                                    onClick={
+                                        onReply
+                                            ? () => onReply(buildReplyTarget(root, target, anonymous))
+                                            : undefined
+                                    }
+                                />
+                                <span className="t-secondary">：</span>
+                            </p>
+                            <CommentTailContent content={reply.content} />
+                        </div>
                         {canDelete ? (
                             <Popup
                                 arrow={false}
@@ -129,28 +219,27 @@ function CommentReplyTail({
 function CommentThread({
     root,
     replies,
+    byId,
     onDelete,
     onRefresh,
     onReply,
 }: {
     root: CommentRecord;
     replies: CommentRecord[];
+    byId: Map<number, CommentRecord>;
     onDelete: (id: number) => Promise<{ error?: string }>;
     onRefresh: () => void;
-    onReply?: (comment: CommentRecord) => void;
+    onReply?: (target: CommentReplyTarget) => void;
 }) {
     const { t } = useTranslation();
     const { showConfirm, ConfirmUI } = useConfirm();
     const { showAlert, AlertUI } = useAlert();
     const profile = useContext(ProfileContext);
     const siteConfig = useSiteConfig();
+    const anonymous = t("anonymous");
 
-    const name = commentName(root, t("anonymous"));
-    const avatar = resolveCommentAvatar({
-        userAvatar: root.user?.avatar,
-        guestEmail: root.guestEmail,
-        defaultAvatar: siteConfig.avatar,
-    });
+    const name = commentName(root, anonymous);
+    const avatar = commentAvatar(root, siteConfig.avatar);
     const canDelete =
         profile?.permission ||
         (root.user && profile?.id === root.user.id);
@@ -186,10 +275,13 @@ function CommentThread({
                 <CommentContent content={root.content} />
                 {replies.length > 0 ? (
                     <CommentReplyTail
-                        rootName={name}
+                        root={root}
                         replies={replies}
+                        byId={byId}
+                        defaultAvatar={siteConfig.avatar}
                         onDelete={onDelete}
                         onRefresh={onRefresh}
+                        onReply={onReply}
                     />
                 ) : null}
                 <div className="mt-2 flex items-center justify-between gap-2">
@@ -197,7 +289,7 @@ function CommentThread({
                         <button
                             type="button"
                             className="rounded-full bg-secondary px-3 py-1 text-sm t-secondary hover:bg-button"
-                            onClick={() => onReply(root)}
+                            onClick={() => onReply(buildReplyTarget(root, root, anonymous))}
                         >
                             {t("comment.reply")}
                         </button>
@@ -250,6 +342,7 @@ export function CommentList({ comments, onDelete, onRefresh, onReply }: CommentL
         return null;
     }
 
+    const byId = new Map(comments.map((comment) => [comment.id, comment]));
     const threads = groupCommentThreads(comments);
 
     return (
@@ -259,6 +352,7 @@ export function CommentList({ comments, onDelete, onRefresh, onReply }: CommentL
                     key={root.id}
                     root={root}
                     replies={replies}
+                    byId={byId}
                     onDelete={onDelete}
                     onRefresh={onRefresh}
                     onReply={onReply}

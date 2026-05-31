@@ -14,12 +14,13 @@ export type CommentSubmitPayload = {
     guestEmail?: string;
     guestWebsite?: string;
     parentId?: number;
+    replyToId?: number;
 };
 
 type CommentComposerProps = {
     onSubmit: (payload: CommentSubmitPayload) => Promise<{ error?: string }>;
     placeholder?: string;
-    replyTo?: { id: number; name: string } | null;
+    replyTo?: { parentId: number; replyToId: number; name: string } | null;
     onCancelReply?: () => void;
 };
 
@@ -117,7 +118,8 @@ export function CommentComposer({
             guestName: profile ? undefined : guestName.trim(),
             guestEmail: profile ? undefined : guestEmail.trim(),
             guestWebsite: profile ? undefined : guestWebsite.trim() || undefined,
-            parentId: replyTo?.id,
+            parentId: replyTo?.parentId,
+            replyToId: replyTo?.replyToId,
         });
         setBusy(false);
 
