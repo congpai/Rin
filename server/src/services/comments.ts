@@ -1,18 +1,25 @@
+import { desc, eq } from "drizzle-orm";
 import { Hono } from "hono";
 import type { AppContext } from "../core/hono-types";
-import { desc, eq } from "drizzle-orm";
 import { comments, feeds, users } from "../db/schema";
 import { profileAsync } from "../core/server-timing";
 import { notify } from "../utils/webhook";
 import { resolveWebhookConfig } from "./config-helpers";
 import { resolveFeedCommentReplyContext } from "../utils/comment-parent";
+import {
+    isCommentApprovedValue,
+    isCommentVisibleToViewer,
+    isGuestCommentModerationEnabled,
+} from "../utils/comment-moderation";
 
 function formatCommentRow(row: any) {
+    const approved = isCommentApprovedValue(row.approved);
     if (row.user) {
         return {
             ...row,
             parentId: row.parentId ?? null,
             replyToId: row.replyToId ?? null,
+            approved,
         };
     }
     const { user, ...rest } = row;
@@ -24,6 +31,7 @@ function formatCommentRow(row: any) {
         guestName: rest.guestName || "",
         guestEmail: rest.guestEmail || "",
         guestWebsite: rest.guestWebsite || "",
+        approved,
     };
 }
 
@@ -32,6 +40,7 @@ export function CommentService(): Hono {
 
     app.get('/:feed', async (c: AppContext) => {
         const db = c.get('db');
+        const admin = c.get('admin');
         const feedId = parseInt(c.req.param('feed'));
         
         const comment_list = await profileAsync(c, 'comment_list_db', () => db.query.comments.findMany({
@@ -45,8 +54,9 @@ export function CommentService(): Hono {
             orderBy: [desc(comments.createdAt)]
         }));
         
-        // 将结果统一为前端兼容格式：登录用户用 user 字段，游客用 guestName 等
-        const result = comment_list.map(formatCommentRow);
+        const result = comment_list
+            .filter((row) => isCommentVisibleToViewer(row.approved, admin))
+            .map(formatCommentRow);
         
         return c.json(result);
     });
@@ -55,6 +65,7 @@ export function CommentService(): Hono {
         const db = c.get('db');
         const env = c.get('env');
         const serverConfig = c.get('serverConfig');
+        const clientConfig = c.get('clientConfig');
         const uid = c.get('uid');
         const feedId = parseInt(c.req.param('feed'));
         const body = await profileAsync(c, 'comment_create_parse', () => c.req.json());
@@ -124,6 +135,9 @@ export function CommentService(): Hono {
             return c.text('Guest email is required', 400);
         }
 
+        const moderateGuests = await isGuestCommentModerationEnabled(clientConfig);
+        const approved = moderateGuests ? 0 : 1;
+
         await db.insert(comments).values({
             feedId,
             userId: null,
@@ -133,18 +147,19 @@ export function CommentService(): Hono {
             guestWebsite: guestWebsite?.trim() || "",
             parentId: replyContext.parentId,
             replyToId: replyContext.replyToId,
-            approved: 1,
+            approved,
         });
 
         const { webhookUrl, webhookMethod, webhookContentType, webhookHeaders, webhookBodyTemplate } =
             await profileAsync(c, 'comment_create_webhook_config', () => resolveWebhookConfig(serverConfig, env));
         const frontendUrl = new URL(c.req.url).origin;
+        const moderationNote = moderateGuests ? "（待审核）" : "";
         try {
             await profileAsync(c, 'comment_create_notify', () => notify(
                 webhookUrl || "",
                 {
                     event: "comment.created",
-                    message: `${frontendUrl}/feed/${feedId}\n游客 ${guestName} 评论了: ${exist.title}\n${content}`,
+                    message: `${frontendUrl}/feed/${feedId}\n游客 ${guestName} 评论了${moderationNote}: ${exist.title}\n${content}`,
                     title: exist.title || "",
                     url: `${frontendUrl}/feed/${feedId}`,
                     username: guestName,
@@ -160,6 +175,35 @@ export function CommentService(): Hono {
         } catch (error) {
             console.error("Failed to send comment webhook", error);
         }
+
+        if (moderateGuests) {
+            return c.text('Pending moderation');
+        }
+        return c.text('OK');
+    });
+
+    app.patch('/approve/:id', async (c: AppContext) => {
+        const db = c.get('db');
+        const admin = c.get('admin');
+
+        if (!admin) {
+            return c.text('Permission denied', 403);
+        }
+
+        const id = parseInt(c.req.param('id'));
+        const comment = await profileAsync(c, 'comment_approve_lookup', () =>
+            db.query.comments.findFirst({ where: eq(comments.id, id) }),
+        );
+
+        if (!comment) {
+            return c.text('Not found', 404);
+        }
+
+        if (isCommentApprovedValue(comment.approved)) {
+            return c.text('OK');
+        }
+
+        await db.update(comments).set({ approved: 1 }).where(eq(comments.id, id));
         return c.text('OK');
     });
 
