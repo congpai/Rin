@@ -106,6 +106,9 @@ export function CommentService(): Hono {
         if (!guestName || !guestName.trim()) {
             return c.text('Guest name is required', 400);
         }
+        if (!guestEmail || !guestEmail.trim()) {
+            return c.text('Guest email is required', 400);
+        }
 
         await db.insert(comments).values({
             feedId,
