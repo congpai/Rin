@@ -258,6 +258,53 @@ describe('CommentService', () => {
             expect(await nestedRes.text()).toContain('Nested replies are not supported');
         });
 
+        it('should store reply target while keeping flat parent', async () => {
+            const parentRes = await app.request('/1', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer mock_token_1',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ content: 'Root for reply target test' }),
+            }, env);
+            expect(parentRes.status).toBe(200);
+
+            const list = await (await app.request('/1', { method: 'GET' }, env)).json() as any[];
+            const parent = list.find((c: any) => c.content === 'Root for reply target test');
+
+            const firstReplyRes = await app.request('/1', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer mock_token_2',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ content: 'First reply', parentId: parent.id }),
+            }, env);
+            expect(firstReplyRes.status).toBe(200);
+
+            const afterFirst = await (await app.request('/1', { method: 'GET' }, env)).json() as any[];
+            const firstReply = afterFirst.find((c: any) => c.content === 'First reply');
+
+            const secondReplyRes = await app.request('/1', {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer mock_token_1',
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    content: 'Reply to first reply',
+                    parentId: parent.id,
+                    replyToId: firstReply.id,
+                }),
+            }, env);
+            expect(secondReplyRes.status).toBe(200);
+
+            const afterSecond = await (await app.request('/1', { method: 'GET' }, env)).json() as any[];
+            const secondReply = afterSecond.find((c: any) => c.content === 'Reply to first reply');
+            expect(secondReply.parentId).toBe(parent.id);
+            expect(secondReply.replyToId).toBe(firstReply.id);
+        });
+
         it('should return 400 when not authenticated and guest name missing', async () => {
             const res = await app.request('/1', {
                 method: 'POST',
