@@ -16,6 +16,7 @@ import { useSiteConfig } from "../hooks/useSiteConfig";
 import { siteName } from "../utils/constants";
 import { timeago } from "../utils/timeago";
 import { resolveCommentAvatar } from "../utils/cravatar";
+import { readGuestCommentProfile, writeGuestCommentProfile } from "../utils/guest-comment-cache";
 import { Button } from "../components/button";
 import { Tips } from "../components/tips";
 import mermaid from "mermaid";
@@ -376,10 +377,11 @@ function CommentInput({
   onRefresh: () => void;
 }) {
   const { t } = useTranslation();
+  const cachedGuest = readGuestCommentProfile();
   const [content, setContent] = useState("");
-  const [guestName, setGuestName] = useState("");
-  const [guestEmail, setGuestEmail] = useState("");
-  const [guestWebsite, setGuestWebsite] = useState("");
+  const [guestName, setGuestName] = useState(cachedGuest.name);
+  const [guestEmail, setGuestEmail] = useState(cachedGuest.email);
+  const [guestWebsite, setGuestWebsite] = useState(cachedGuest.website);
   const [error, setError] = useState("");
   const { showAlert, AlertUI } = useAlert();
   const profile = useContext(ProfileContext);
@@ -388,6 +390,13 @@ function CommentInput({
   // guest comments enabled by default; admin can disable via client config `comment.guest.enabled=false`
   const rawGuest = config.get('comment.guest.enabled');
   const guestEnabled = rawGuest !== false && rawGuest !== 'false';
+  function persistGuestProfile() {
+    writeGuestCommentProfile({
+      name: guestName,
+      email: guestEmail,
+      website: guestWebsite,
+    });
+  }
   function errorHumanize(error: string) {
     if (error === "Unauthorized") return t("login.required");
     else if (error === "Content is required") return t("comment.empty");
@@ -431,9 +440,7 @@ function CommentInput({
             setError(errorHumanize(error.value as string));
           } else {
             setContent("");
-            setGuestName("");
-            setGuestEmail("");
-            setGuestWebsite("");
+            persistGuestProfile();
             setError("");
             showAlert(t("comment.success"), () => {
               onRefresh();
@@ -470,6 +477,7 @@ function CommentInput({
           className="bg-w w-full rounded-lg px-3 py-2 mb-2 border border-gray-200 dark:border-gray-700"
           value={guestName}
           onChange={(e) => setGuestName(e.target.value)}
+          onBlur={persistGuestProfile}
         />
         <input
           type="email"
@@ -478,6 +486,7 @@ function CommentInput({
           className="bg-w w-full rounded-lg px-3 py-2 mb-2 border border-gray-200 dark:border-gray-700"
           value={guestEmail}
           onChange={(e) => setGuestEmail(e.target.value)}
+          onBlur={persistGuestProfile}
         />
         <input
           type="url"
@@ -485,6 +494,7 @@ function CommentInput({
           className="bg-w w-full rounded-lg px-3 py-2 mb-2 border border-gray-200 dark:border-gray-700"
           value={guestWebsite}
           onChange={(e) => setGuestWebsite(e.target.value)}
+          onBlur={persistGuestProfile}
         />
         <textarea
           id="comment"
