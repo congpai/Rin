@@ -107,6 +107,8 @@
     "guest_website_placeholder": "网站（可选）",
     "hide": "收起评论",
     "reply": "回复",
+    "reply_action": "回复",
+    "image_tag": "[图片]",
     "reply_to": "回复 {{name}}",
     "cancel_reply": "取消回复",
     "submit_reply": "发表回复",

@@ -107,6 +107,8 @@
     "guest_website_placeholder": "ウェブサイト（任意）",
     "hide": "コメントを閉じる",
     "reply": "返信",
+    "reply_action": "返信",
+    "image_tag": "[画像]",
     "reply_to": "{{name}} に返信",
     "cancel_reply": "返信をキャンセル",
     "submit_reply": "返信を投稿",

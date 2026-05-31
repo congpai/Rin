@@ -107,6 +107,8 @@
     "guest_website_placeholder": "Website (optional)",
     "hide": "Hide comments",
     "reply": "Reply",
+    "reply_action": "replied to",
+    "image_tag": "[image]",
     "reply_to": "Reply to {{name}}",
     "cancel_reply": "Cancel reply",
     "submit_reply": "Post reply",

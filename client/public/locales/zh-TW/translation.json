@@ -107,6 +107,8 @@
     "guest_website_placeholder": "網站（可選）",
     "hide": "收起評論",
     "reply": "回覆",
+    "reply_action": "回覆",
+    "image_tag": "[圖片]",
     "reply_to": "回覆 {{name}}",
     "cancel_reply": "取消回覆",
     "submit_reply": "發表回覆",
