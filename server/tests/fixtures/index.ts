@@ -115,10 +115,28 @@ export function createMockDB() {
             guest_name TEXT DEFAULT '',
             guest_email TEXT DEFAULT '',
             guest_website TEXT DEFAULT '',
+            parent_id INTEGER,
             approved INTEGER DEFAULT 1 NOT NULL,
             created_at INTEGER DEFAULT (unixepoch()),
             updated_at INTEGER DEFAULT (unixepoch()),
             FOREIGN KEY (feed_id) REFERENCES feeds(id) ON DELETE CASCADE,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        );
+
+        -- Moment comments table
+        CREATE TABLE IF NOT EXISTS moment_comments (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            moment_id INTEGER NOT NULL,
+            user_id INTEGER,
+            content TEXT NOT NULL,
+            guest_name TEXT DEFAULT '',
+            guest_email TEXT DEFAULT '',
+            guest_website TEXT DEFAULT '',
+            parent_id INTEGER,
+            approved INTEGER DEFAULT 1 NOT NULL,
+            created_at INTEGER DEFAULT (unixepoch()),
+            updated_at INTEGER DEFAULT (unixepoch()),
+            FOREIGN KEY (moment_id) REFERENCES moments(id) ON DELETE CASCADE,
             FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
         );
 
