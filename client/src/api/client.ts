@@ -364,6 +364,22 @@ class CommentAPI {
   }
 }
 
+class MomentCommentAPI {
+  constructor(private http: HttpClient) {}
+
+  async list(momentId: number): Promise<ApiResponse<Comment[]>> {
+    return this.http.get<Comment[]>(`/api/moment-comment/${momentId}`);
+  }
+
+  async create(momentId: number, body: CreateCommentRequest): Promise<ApiResponse<Comment>> {
+    return this.http.post<Comment>(`/api/moment-comment/${momentId}`, body);
+  }
+
+  async delete(id: number): Promise<ApiResponse<void>> {
+    return this.http.delete<void>(`/api/moment-comment/${id}`);
+  }
+}
+
 /**
  * User API methods
  */
@@ -654,6 +670,7 @@ export class ApiClient {
   feed: FeedAPI;
   tag: TagAPI;
   comment: CommentAPI;
+  momentComment: MomentCommentAPI;
   user: UserAPI;
   friend: FriendAPI;
   moments: MomentsAPI;
@@ -670,6 +687,7 @@ export class ApiClient {
     this.feed = new FeedAPI(this.http);
     this.tag = new TagAPI(this.http);
     this.comment = new CommentAPI(this.http);
+    this.momentComment = new MomentCommentAPI(this.http);
     this.user = new UserAPI(this.http);
     this.friend = new FriendAPI(this.http);
     this.moments = new MomentsAPI(this.http);
