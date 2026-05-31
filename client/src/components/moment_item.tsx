@@ -1,8 +1,10 @@
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Markdown } from "./markdown";
 import { timeago } from "../utils/timeago";
 import { MomentImageGrid } from "./moment_image_grid";
 import { extractMomentImages, stripMomentImages } from "../utils/moment-content";
+import { MomentComments } from "./comment/moment_comments";
 
 interface Moment {
     id: number;
@@ -31,6 +33,7 @@ export function MomentItem({
     const { createdAt, updatedAt } = moment;
     const images = extractMomentImages(moment.content);
     const textContent = stripMomentImages(moment.content);
+    const [commentsOpen, setCommentsOpen] = useState(false);
 
     return (
         <div className="bg-w p-4 rounded-lg">
@@ -84,6 +87,19 @@ export function MomentItem({
                 </div>
             ) : null}
             <MomentImageGrid images={images} />
+
+            <div className="mt-3">
+                <button
+                    type="button"
+                    className="rounded-full bg-secondary px-3 py-1.5 text-sm t-secondary hover:bg-button"
+                    onClick={() => setCommentsOpen((v) => !v)}
+                >
+                    <i className="ri-chat-3-line mr-1" />
+                    {commentsOpen ? t("comment.hide", { defaultValue: "收起评论" }) : t("comment.title")}
+                </button>
+            </div>
+
+            <MomentComments momentId={moment.id} open={commentsOpen} />
         </div>
     )
 }
