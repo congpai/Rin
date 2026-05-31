@@ -1,4 +1,5 @@
 import { eq } from "drizzle-orm";
+import type { DB } from "../core/hono-types";
 import { comments, momentComments } from "../db/schema";
 
 function parseParentId(parentId: unknown): number | null | "invalid" {
@@ -13,17 +14,7 @@ function parseParentId(parentId: unknown): number | null | "invalid" {
 }
 
 export async function resolveFeedCommentParentId(
-    db: {
-        query: {
-            comments: {
-                findFirst: (args: { where: unknown }) => Promise<{
-                    id: number;
-                    feedId: number;
-                    parentId: number | null;
-                } | undefined>;
-            };
-        };
-    },
+    db: DB,
     feedId: number,
     parentId: unknown,
 ): Promise<{ parentId: number | null } | { error: string }> {
@@ -44,24 +35,14 @@ export async function resolveFeedCommentParentId(
     if (parent.feedId !== feedId) {
         return { error: "Invalid parent comment" };
     }
-    if (parent.parentId) {
+    if (parent.parentId != null) {
         return { error: "Nested replies are not supported" };
     }
     return { parentId: parsed };
 }
 
 export async function resolveMomentCommentParentId(
-    db: {
-        query: {
-            momentComments: {
-                findFirst: (args: { where: unknown }) => Promise<{
-                    id: number;
-                    momentId: number;
-                    parentId: number | null;
-                } | undefined>;
-            };
-        };
-    },
+    db: DB,
     momentId: number,
     parentId: unknown,
 ): Promise<{ parentId: number | null } | { error: string }> {
@@ -82,7 +63,7 @@ export async function resolveMomentCommentParentId(
     if (parent.momentId !== momentId) {
         return { error: "Invalid parent comment" };
     }
-    if (parent.parentId) {
+    if (parent.parentId != null) {
         return { error: "Nested replies are not supported" };
     }
     return { parentId: parsed };
