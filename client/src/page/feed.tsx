@@ -15,6 +15,7 @@ import { ProfileContext } from "../state/profile";
 import { useSiteConfig } from "../hooks/useSiteConfig";
 import { siteName } from "../utils/constants";
 import { timeago } from "../utils/timeago";
+import { resolveCommentAvatar } from "../utils/cravatar";
 import { Button } from "../components/button";
 import { Tips } from "../components/tips";
 import mermaid from "mermaid";
@@ -599,8 +600,13 @@ function CommentItem({
   const { showAlert, AlertUI } = useAlert();
   const { t } = useTranslation();
   const profile = useContext(ProfileContext);
+  const siteConfig = useSiteConfig();
   const commenterName = comment.user?.username || comment.guestName || t("anonymous");
-  const commenterAvatar = comment.user?.avatar || "/avatar.png";
+  const commenterAvatar = resolveCommentAvatar({
+    userAvatar: comment.user?.avatar,
+    guestEmail: comment.guestEmail,
+    defaultAvatar: siteConfig.avatar,
+  });
   function deleteComment() {
     showConfirm(
       t("delete.comment.title"),
@@ -623,7 +629,8 @@ function CommentItem({
     <div className="flex flex-row items-start rounded-xl mt-2">
       <img
         src={commenterAvatar}
-        className="w-8 h-8 rounded-full mt-4"
+        alt=""
+        className="w-8 h-8 rounded-full mt-4 object-cover"
       />
       <div className="flex flex-col flex-1 w-0 ml-2 bg-w rounded-xl p-4">
         <div className="flex flex-row">
