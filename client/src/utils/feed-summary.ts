@@ -1,4 +1,7 @@
-// Keep in sync with server/src/utils/feed-summary.ts (client bundle cannot import server code)
+// Keep in sync with server/src/utils/feed-summary.ts
+
+/** List excerpt length when article has no manual 简介 */
+export const FEED_AUTO_SUMMARY_MAX_LENGTH = 240;
 
 const HTML_ENTITIES: Record<string, string> = {
     "&nbsp;": " ",
@@ -49,10 +52,17 @@ export function normalizeContentForFeedSummary(content: string): string {
     text = text.replace(/<[^>]*/g, "");
     text = text.replace(/https?:\/\/\S+/gi, "");
 
+    text = text.replace(/^#{1,6}\s+/gm, "");
+    text = text.replace(/\*\*([^*]+)\*\*/g, "$1");
+    text = text.replace(/\*([^*]+)\*/g, "$1");
+
     return text.replace(/\s+/g, " ").trim();
 }
 
-export function normalizeFeedSummaryDisplay(summary: string, maxLength = 200): string {
+export function normalizeFeedSummaryDisplay(
+    summary: string,
+    maxLength = FEED_AUTO_SUMMARY_MAX_LENGTH,
+): string {
     const normalized = normalizeContentForFeedSummary(summary);
     if (!normalized) {
         return summary.slice(0, maxLength);
