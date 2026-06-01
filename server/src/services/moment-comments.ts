@@ -24,7 +24,7 @@ import {
 
 } from "../utils/comment-moderation";
 
-import { getCommentMinLength, validateCommentContent } from "../utils/comment-content";
+import { validateCommentContent } from "../utils/comment-content";
 
 
 
@@ -150,9 +150,7 @@ export function MomentCommentService(): Hono {
 
 
 
-        const minLength = await getCommentMinLength(clientConfig);
-
-        const contentError = validateCommentContent(content, minLength);
+        const contentError = validateCommentContent(content);
 
         if (contentError) {
 
