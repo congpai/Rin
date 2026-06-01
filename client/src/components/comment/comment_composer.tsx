@@ -6,7 +6,7 @@ import { ProfileContext } from "../../state/profile";
 import { ClientConfigContext } from "../../state/config";
 import { readGuestCommentProfile, writeGuestCommentProfile } from "../../utils/guest-comment-cache";
 import { uploadImageFile, buildMarkdownImage } from "../../utils/image-upload";
-import { parseCommentMinLength, validateCommentContent } from "../../utils/comment-validation";
+import { COMMENT_MIN_LENGTH, validateCommentContent } from "../../utils/comment-validation";
 import { EmojiPicker } from "./emoji_picker";
 
 export type CommentSubmitPayload = {
@@ -51,7 +51,6 @@ export function CommentComposer({
 
     const rawGuest = config.get("comment.guest.enabled");
     const guestEnabled = rawGuest !== false && rawGuest !== "false";
-    const commentMinLength = parseCommentMinLength(config.get("comment.min_length"), 1);
 
     useEffect(() => {
         if (!replyTo) return;
@@ -77,7 +76,7 @@ export function CommentComposer({
     }
 
     function commentValidationError(contentValue: string) {
-        const validation = validateCommentContent(contentValue, commentMinLength);
+        const validation = validateCommentContent(contentValue);
         if (validation === "empty") {
             return t("comment.empty");
         }
@@ -92,7 +91,7 @@ export function CommentComposer({
         if (msg === "Content is required") return t("comment.empty");
         if (msg.startsWith("Comment too short:")) {
             const min = Number(msg.slice("Comment too short:".length));
-            return t("comment.min_length", { min: Number.isFinite(min) ? min : commentMinLength });
+            return t("comment.min_length", { min: Number.isFinite(min) ? min : COMMENT_MIN_LENGTH });
         }
         if (msg === "Guest name is required") return t("comment.guest_name_required");
         if (msg === "Guest email is required") return t("comment.guest_email_required");
