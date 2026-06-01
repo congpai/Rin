@@ -94,6 +94,7 @@
   "close": "Close",
   "comment": {
     "empty": "Comment cannot be empty",
+    "emoji_picker": "Insert emoji",
     "min_length": "Comment must be at least {{min}} characters",
     "placeholder": {
       "title": "Say something..."

@@ -94,6 +94,7 @@
   "close": "关闭",
   "comment": {
     "empty": "评论内容不能为空",
+    "emoji_picker": "插入表情",
     "min_length": "评论至少需要 {{min}} 个字符",
     "placeholder": {
       "title": "说点什么吧"

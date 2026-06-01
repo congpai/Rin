@@ -94,6 +94,7 @@
   "close": "閉じる",
   "comment": {
     "empty": "コメント内容は空にできません",
+    "emoji_picker": "絵文字を挿入",
     "min_length": "コメントは最低 {{min}} 文字必要です",
     "placeholder": {
       "title": "何か言ってください..."
