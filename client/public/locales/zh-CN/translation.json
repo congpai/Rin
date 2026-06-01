@@ -94,6 +94,7 @@
   "close": "关闭",
   "comment": {
     "empty": "评论内容不能为空",
+    "min_length": "评论至少需要 {{min}} 个字符",
     "placeholder": {
       "title": "说点什么吧"
     },
@@ -122,7 +123,8 @@
     "approve_success": "已通过审核",
     "reject": "拒绝",
     "reject_confirm": "确定拒绝并删除这条评论吗？",
-    "reject_success": "已拒绝该评论"
+    "reject_success": "已拒绝该评论",
+    "pending_admin_hint": "有 {{count}} 条游客评论待审核，请在下方点击 ✔ 通过或 ✕ 拒绝"
   },
   "comparison": "对比",
   "confirm": "确认",
@@ -294,6 +296,11 @@
           "desc": "开启后，游客评论需管理员审核通过才会公开显示",
           "title": "游客评论审核"
         }
+      },
+      "min_length": {
+        "desc": "评论纯文字的最少字符数，设为 1 表示仅不能为空；只发图片不受此限制",
+        "label": "最少字符数",
+        "title": "评论最少字符"
       }
     },
     "counter": {

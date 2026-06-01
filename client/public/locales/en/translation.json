@@ -94,6 +94,7 @@
   "close": "Close",
   "comment": {
     "empty": "Comment cannot be empty",
+    "min_length": "Comment must be at least {{min}} characters",
     "placeholder": {
       "title": "Say something..."
     },
@@ -122,7 +123,8 @@
     "approve_success": "Comment approved",
     "reject": "Reject",
     "reject_confirm": "Reject and delete this comment?",
-    "reject_success": "Comment rejected"
+    "reject_success": "Comment rejected",
+    "pending_admin_hint": "{{count}} guest comment(s) are awaiting review. Use ✔ to approve or ✕ to reject below."
   },
   "comparison": "Comparison",
   "confirm": "Confirm",
@@ -294,6 +296,11 @@
           "desc": "When enabled, guest comments must be approved before they are visible to everyone",
           "title": "Moderate guest comments"
         }
+      },
+      "min_length": {
+        "desc": "Minimum characters for comment text. Use 1 to only require non-empty content. Image-only comments are not limited by this setting.",
+        "label": "Minimum characters",
+        "title": "Comment minimum length"
       }
     },
     "counter": {

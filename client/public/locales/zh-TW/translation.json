@@ -94,6 +94,7 @@
   "close": "關閉",
   "comment": {
     "empty": "留言內容不能為空",
+    "min_length": "留言至少需要 {{min}} 個字元",
     "placeholder": {
       "title": "說點什麼吧"
     },
@@ -122,7 +123,8 @@
     "approve_success": "已通過審核",
     "reject": "拒絕",
     "reject_confirm": "確定拒絕並刪除這則留言嗎？",
-    "reject_success": "已拒絕該留言"
+    "reject_success": "已拒絕該留言",
+    "pending_admin_hint": "有 {{count}} 則遊客留言待審核，請在下方點擊 ✔ 通過或 ✕ 拒絕"
   },
   "comparison": "比較",
   "confirm": "確認",
@@ -294,6 +296,11 @@
           "desc": "開啟後，遊客留言需管理員審核通過才會公開顯示",
           "title": "遊客留言審核"
         }
+      },
+      "min_length": {
+        "desc": "留言純文字的最少字元數，設為 1 表示僅不能為空；只發圖片不受此限制",
+        "label": "最少字元數",
+        "title": "留言最少字元"
       }
     },
     "counter": {
