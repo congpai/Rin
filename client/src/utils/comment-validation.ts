@@ -2,25 +2,12 @@ import { stripMarkdownImages } from "../components/comment/comment_content";
 
 const MARKDOWN_IMAGE_RE = /!\[([^\]]*)\]\(([^)]+)\)/g;
 
-export function parseCommentMinLength(value: unknown, defaultValue = 1) {
-    if (value === undefined || value === null || value === "") {
-        return defaultValue;
-    }
-
-    const parsed = typeof value === "number" ? value : Number.parseInt(String(value).trim(), 10);
-    if (!Number.isFinite(parsed) || parsed < 0) {
-        return defaultValue;
-    }
-
-    return Math.floor(parsed);
-}
+/** 评论纯文字最少字符数；只发图片不受此限制。需与 server/src/utils/comment-content.ts 保持一致。 */
+export const COMMENT_MIN_LENGTH = 6;
 
 export type CommentContentValidationError = "empty" | { tooShort: number };
 
-export function validateCommentContent(
-    content: string,
-    minLength: number,
-): CommentContentValidationError | null {
+export function validateCommentContent(content: string): CommentContentValidationError | null {
     const trimmed = content.trim();
     if (!trimmed) {
         return "empty";
@@ -33,9 +20,12 @@ export function validateCommentContent(
         return "empty";
     }
 
-    const min = parseCommentMinLength(minLength, 1);
-    if (min > 1 && text.length > 0 && text.length < min) {
-        return { tooShort: min };
+    if (
+        COMMENT_MIN_LENGTH > 1
+        && text.length > 0
+        && text.length < COMMENT_MIN_LENGTH
+    ) {
+        return { tooShort: COMMENT_MIN_LENGTH };
     }
 
     return null;
