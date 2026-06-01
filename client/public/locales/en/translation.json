@@ -296,11 +296,6 @@
           "desc": "When enabled, guest comments must be approved before they are visible to everyone",
           "title": "Moderate guest comments"
         }
-      },
-      "min_length": {
-        "desc": "Minimum characters for comment text. Use 1 to only require non-empty content. Image-only comments are not limited by this setting.",
-        "label": "Minimum characters",
-        "title": "Comment minimum length"
       }
     },
     "counter": {
