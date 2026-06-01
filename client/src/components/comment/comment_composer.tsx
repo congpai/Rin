@@ -9,6 +9,38 @@ import { uploadImageFile, buildMarkdownImage } from "../../utils/image-upload";
 import { COMMENT_MIN_LENGTH, validateCommentContent } from "../../utils/comment-validation";
 import { EmojiPicker } from "./emoji_picker";
 
+function EmojiIcon({ className }: { className?: string }) {
+    return (
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 496 512"
+            className={className}
+            aria-hidden="true"
+        >
+            <path
+                fill="currentColor"
+                d="M248 8C111 8 0 119 0 256s111 248 248 248 248-111 248-248S385 8 248 8zm141.4 389.4c-37.8 37.8-88 58.6-141.4 58.6s-103.6-20.8-141.4-58.6S48 309.4 48 256s20.8-103.6 58.6-141.4S194.6 56 248 56s103.6 20.8 141.4 58.6S448 202.6 448 256s-20.8 103.6-58.6 141.4zM328 224c17.7 0 32-14.3 32-32s-14.3-32-32-32-32 14.3-32 32 14.3 32 32 32zm-160 0c17.7 0 32-14.3 32-32s-14.3-32-32-32-32 14.3-32 32 14.3 32 32 32zm194.4 64H133.6c-8.2 0-14.5 7-13.5 15 7.5 59.2 58.9 105 121.1 105h13.6c62.2 0 113.6-45.8 121.1-105 1-8-5.3-15-13.5-15z"
+            />
+        </svg>
+    );
+}
+
+function ImageUploadIcon({ className }: { className?: string }) {
+    return (
+        <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 512 512"
+            className={className}
+            aria-hidden="true"
+        >
+            <path
+                fill="currentColor"
+                d="M464 64H48C21.49 64 0 85.49 0 112v288c0 26.51 21.49 48 48 48h416c26.51 0 48-21.49 48-48V112c0-26.51-21.49-48-48-48zm-6 336H54a6 6 0 0 1-6-6V118a6 6 0 0 1 6-6h404a6 6 0 0 1 6 6v276a6 6 0 0 1-6 6zM128 152c-22.091 0-40 17.909-40 40s17.909 40 40 40 40-17.909 40-40-17.909-40-40-40zM96 352h320v-80l-87.515-87.515c-4.686-4.686-12.284-4.686-16.971 0L192 304l-39.515-39.515c-4.686-4.686-12.284-4.686-16.971 0L96 304v48z"
+            />
+        </svg>
+    );
+}
+
 export type CommentSubmitPayload = {
     content: string;
     guestName?: string;
@@ -246,11 +278,12 @@ export function CommentComposer({
                 <div className="relative flex items-center gap-2">
                     <button
                         type="button"
-                        aria-label="emoji"
-                        className="rounded-full bg-secondary px-3 py-1.5 text-sm hover:bg-button"
+                        aria-label={t("comment.emoji_picker")}
+                        title={t("comment.emoji_picker")}
+                        className="inline-flex items-center justify-center rounded-full bg-secondary px-3 py-1.5 text-sm hover:bg-button"
                         onClick={() => setShowEmoji((v) => !v)}
                     >
-                        😀
+                        <EmojiIcon className="h-4 w-4" />
                     </button>
                     {showEmoji ? (
                         <div className="absolute bottom-full left-0 z-10 mb-2">
@@ -267,10 +300,12 @@ export function CommentComposer({
                             <button
                                 type="button"
                                 disabled={uploading}
-                                className="rounded-full bg-secondary px-3 py-1.5 text-sm hover:bg-button disabled:opacity-50"
+                                aria-label={uploading ? t("uploading") : t("upload.title")}
+                                title={uploading ? t("uploading") : t("upload.title")}
+                                className="inline-flex items-center justify-center rounded-full bg-secondary px-3 py-1.5 text-sm hover:bg-button disabled:opacity-50"
                                 onClick={() => fileRef.current?.click()}
                             >
-                                {uploading ? t("uploading") : t("upload.title")}
+                                <ImageUploadIcon className="h-4 w-4" />
                             </button>
                             <input
                                 ref={fileRef}
