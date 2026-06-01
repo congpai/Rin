@@ -11,6 +11,7 @@ import {
     isCommentVisibleToViewer,
     isGuestCommentModerationEnabled,
 } from "../utils/comment-moderation";
+import { getCommentMinLength, validateCommentContent } from "../utils/comment-content";
 
 function formatCommentRow(row: any) {
     const approved = isCommentApprovedValue(row.approved);
@@ -70,9 +71,11 @@ export function CommentService(): Hono {
         const feedId = parseInt(c.req.param('feed'));
         const body = await profileAsync(c, 'comment_create_parse', () => c.req.json());
         const { content, guestName, guestEmail, guestWebsite, parentId, replyToId } = body;
-        
-        if (!content) {
-            return c.text('Content is required', 400);
+
+        const minLength = await getCommentMinLength(clientConfig);
+        const contentError = validateCommentContent(content, minLength);
+        if (contentError) {
+            return c.text(contentError, 400);
         }
 
         const replyContext = await resolveFeedCommentReplyContext(db, feedId, parentId, replyToId);
