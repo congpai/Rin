@@ -449,6 +449,16 @@ export function Settings() {
               setConfigValue("client", "comment.moderation.guest", checked);
             }}
           />
+          <ItemInput
+            title={t("settings.comment.min_length.title")}
+            description={t("settings.comment.min_length.desc")}
+            configKeyTitle={t("settings.comment.min_length.label")}
+            value={String(clientConfig.get("comment.min_length") ?? "")}
+            placeholder={String(clientConfig.default("comment.min_length") ?? t("settings.comment.min_length.label"))}
+            onChange={(value) => {
+              setConfigValue("client", "comment.min_length", value);
+            }}
+          />
           <ItemSwitch
             title={t("settings.counter.enable.title")}
             description={t("settings.counter.enable.desc")}
