@@ -2,7 +2,7 @@ import { useContext } from "react";
 import { useTranslation } from "react-i18next";
 import Popup from "reactjs-popup";
 import { useAlert, useConfirm } from "../dialog";
-import { ProfileContext } from "../../state/profile";
+import { ProfileContext, type Profile } from "../../state/profile";
 import { useSiteConfig } from "../../hooks/useSiteConfig";
 import { resolveCommentAvatar } from "../../utils/cravatar";
 import { groupCommentThreads } from "../../utils/comment-thread";
@@ -25,7 +25,7 @@ export type CommentRecord = {
     guestName?: string;
     guestEmail?: string;
     guestWebsite?: string;
-    approved?: boolean;
+    approved?: boolean | number;
 };
 
 export type CommentReplyTarget = {
@@ -43,7 +43,11 @@ type CommentListProps = {
 };
 
 function isPendingComment(comment: CommentRecord) {
-    return comment.approved === false;
+    return comment.approved === false || comment.approved === 0;
+}
+
+function isAdminViewer(profile: Profile | null | undefined) {
+    return profile?.permission === true;
 }
 
 function commentName(comment: CommentRecord, anonymous: string) {
@@ -179,6 +183,95 @@ function CommentModerationActions({
     );
 }
 
+function CommentTailFooter({
+    commentId,
+    createdAt,
+    pending,
+    isAdmin,
+    canDelete,
+    onApprove,
+    onDelete,
+    onRefresh,
+}: {
+    commentId: number;
+    createdAt: Date | string;
+    pending: boolean;
+    isAdmin: boolean;
+    canDelete: boolean;
+    onApprove?: (id: number) => Promise<{ error?: string }>;
+    onDelete: (id: number) => Promise<{ error?: string }>;
+    onRefresh: () => void;
+}) {
+    const { t } = useTranslation();
+    const { showConfirm, ConfirmUI } = useConfirm();
+    const { showAlert, AlertUI } = useAlert();
+
+    return (
+        <div className="mt-1 flex items-center gap-2">
+            <div className="flex min-w-0 items-center gap-2 text-xs text-gray-400">
+                {pending ? (
+                    <span className="rounded-full bg-amber-200/80 px-1.5 py-0.5 text-[10px] font-medium text-amber-900 dark:bg-amber-900/50 dark:text-amber-100">
+                        {t("comment.pending")}
+                    </span>
+                ) : null}
+                <span title={new Date(createdAt).toLocaleString()} className="whitespace-nowrap">
+                    {timeago(createdAt)}
+                </span>
+            </div>
+            <div className="flex-1" />
+            <div className="flex shrink-0 items-center gap-1">
+                {isAdmin && pending ? (
+                    <CommentModerationActions
+                        commentId={commentId}
+                        onApprove={onApprove}
+                        onReject={onDelete}
+                        onDone={onRefresh}
+                    />
+                ) : null}
+                {canDelete && !pending ? (
+                    <Popup
+                        arrow={false}
+                        trigger={
+                            <button
+                                type="button"
+                                className="rounded px-1 opacity-70 transition hover:opacity-100"
+                                aria-label={t("delete.comment.title")}
+                            >
+                                <i className="ri-more-fill text-xs t-secondary" />
+                            </button>
+                        }
+                        position="left center"
+                    >
+                        <button
+                            type="button"
+                            className="rounded-full bg-secondary px-2 py-1"
+                            onClick={() =>
+                                showConfirm(
+                                    t("delete.comment.title"),
+                                    t("delete.comment.confirm"),
+                                    () => {
+                                        void onDelete(commentId).then(({ error }) => {
+                                            if (error) {
+                                                showAlert(error);
+                                            } else {
+                                                showAlert(t("delete.success"), onRefresh);
+                                            }
+                                        });
+                                    },
+                                )
+                            }
+                        >
+                            <i className="ri-delete-bin-2-line t-secondary" />
+                        </button>
+                    </Popup>
+                ) : null}
+            </div>
+            <ConfirmUI />
+            <AlertUI />
+        </div>
+    );
+}
+
 function CommentReplyTail({
     root,
     replies,
@@ -199,11 +292,9 @@ function CommentReplyTail({
     onReply?: (target: CommentReplyTarget) => void;
 }) {
     const { t } = useTranslation();
-    const { showConfirm, ConfirmUI } = useConfirm();
-    const { showAlert, AlertUI } = useAlert();
     const profile = useContext(ProfileContext);
     const anonymous = t("anonymous");
-    const isAdmin = Boolean(profile?.permission);
+    const isAdmin = isAdminViewer(profile);
 
     return (
         <div className="mt-3 rounded-lg bg-secondary/80 px-3 py-2 text-sm leading-relaxed">
@@ -220,67 +311,9 @@ function CommentReplyTail({
                 return (
                     <div
                         key={reply.id}
-                        className={`group py-1 ${pending ? "rounded-md bg-amber-50/80 px-2 -mx-2 dark:bg-amber-950/20" : ""}`}
+                        className={`py-1.5 ${pending ? "rounded-md bg-amber-50/80 px-2 -mx-2 dark:bg-amber-950/20" : ""}`}
                     >
-                        <div className="min-w-0 overflow-hidden break-words leading-relaxed t-primary">
-                            <div className="float-right ml-2 flex shrink-0 items-center gap-1 pl-1">
-                                {isAdmin && pending ? (
-                                    <CommentModerationActions
-                                        commentId={reply.id}
-                                        onApprove={onApprove}
-                                        onReject={onDelete}
-                                        onDone={onRefresh}
-                                    />
-                                ) : null}
-                                {pending ? (
-                                    <span className="rounded-full bg-amber-200/80 px-1.5 py-0.5 text-[10px] font-medium text-amber-900 dark:bg-amber-900/50 dark:text-amber-100">
-                                        {t("comment.pending")}
-                                    </span>
-                                ) : null}
-                                <span
-                                    title={new Date(reply.createdAt).toLocaleString()}
-                                    className="text-xs whitespace-nowrap text-gray-400"
-                                >
-                                    {timeago(reply.createdAt)}
-                                </span>
-                                {canDelete ? (
-                                    <Popup
-                                        arrow={false}
-                                        trigger={
-                                            <button
-                                                type="button"
-                                                className="rounded px-1 opacity-0 transition group-hover:opacity-100"
-                                                aria-label={t("delete.comment.title")}
-                                            >
-                                                <i className="ri-more-fill text-xs t-secondary" />
-                                            </button>
-                                        }
-                                        position="left center"
-                                    >
-                                        <button
-                                            type="button"
-                                            className="rounded-full bg-secondary px-2 py-1"
-                                            onClick={() =>
-                                                showConfirm(
-                                                    t("delete.comment.title"),
-                                                    t("delete.comment.confirm"),
-                                                    () => {
-                                                        void onDelete(reply.id).then(({ error }) => {
-                                                            if (error) {
-                                                                showAlert(error);
-                                                            } else {
-                                                                showAlert(t("delete.success"), onRefresh);
-                                                            }
-                                                        });
-                                                    },
-                                                )
-                                            }
-                                        >
-                                            <i className="ri-delete-bin-2-line t-secondary" />
-                                        </button>
-                                    </Popup>
-                                ) : null}
-                            </div>
+                        <div className="min-w-0 break-words leading-relaxed t-primary">
                             <ClickableUser
                                 name={name}
                                 avatar={commentAvatar(reply, defaultAvatar)}
@@ -306,11 +339,19 @@ function CommentReplyTail({
                             ) : null}
                         </div>
                         <CommentTailImages content={reply.content} />
+                        <CommentTailFooter
+                            commentId={reply.id}
+                            createdAt={reply.createdAt}
+                            pending={pending}
+                            isAdmin={isAdmin}
+                            canDelete={Boolean(canDelete)}
+                            onApprove={onApprove}
+                            onDelete={onDelete}
+                            onRefresh={onRefresh}
+                        />
                     </div>
                 );
             })}
-            <ConfirmUI />
-            <AlertUI />
         </div>
     );
 }
@@ -338,7 +379,7 @@ function CommentThread({
     const profile = useContext(ProfileContext);
     const siteConfig = useSiteConfig();
     const anonymous = t("anonymous");
-    const isAdmin = Boolean(profile?.permission);
+    const isAdmin = isAdminViewer(profile);
 
     const name = commentName(root, anonymous);
     const avatar = commentAvatar(root, siteConfig.avatar);
