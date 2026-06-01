@@ -6,6 +6,7 @@ import { ProfileContext } from "../../state/profile";
 import { ClientConfigContext } from "../../state/config";
 import { readGuestCommentProfile, writeGuestCommentProfile } from "../../utils/guest-comment-cache";
 import { uploadImageFile, buildMarkdownImage } from "../../utils/image-upload";
+import { parseCommentMinLength, validateCommentContent } from "../../utils/comment-validation";
 import { EmojiPicker } from "./emoji_picker";
 
 export type CommentSubmitPayload = {
@@ -50,6 +51,7 @@ export function CommentComposer({
 
     const rawGuest = config.get("comment.guest.enabled");
     const guestEnabled = rawGuest !== false && rawGuest !== "false";
+    const commentMinLength = parseCommentMinLength(config.get("comment.min_length"), 1);
 
     useEffect(() => {
         if (!replyTo) return;
@@ -74,9 +76,24 @@ export function CommentComposer({
         });
     }
 
+    function commentValidationError(contentValue: string) {
+        const validation = validateCommentContent(contentValue, commentMinLength);
+        if (validation === "empty") {
+            return t("comment.empty");
+        }
+        if (validation && typeof validation === "object") {
+            return t("comment.min_length", { min: validation.tooShort });
+        }
+        return null;
+    }
+
     function humanizeError(msg: string) {
         if (msg === "Unauthorized") return t("login.required");
         if (msg === "Content is required") return t("comment.empty");
+        if (msg.startsWith("Comment too short:")) {
+            const min = Number(msg.slice("Comment too short:".length));
+            return t("comment.min_length", { min: Number.isFinite(min) ? min : commentMinLength });
+        }
         if (msg === "Guest name is required") return t("comment.guest_name_required");
         if (msg === "Guest email is required") return t("comment.guest_email_required");
         if (msg === "Parent comment not found") return t("comment.parent_not_found");
@@ -94,8 +111,9 @@ export function CommentComposer({
     }
 
     async function handleSubmit() {
-        if (!content.trim()) {
-            setError(t("comment.empty"));
+        const validationError = commentValidationError(content);
+        if (validationError) {
+            setError(validationError);
             return;
         }
         if (!profile && !guestEnabled) {
@@ -108,12 +126,6 @@ export function CommentComposer({
         }
         if (!profile && !guestEmail.trim()) {
             setError(t("comment.guest_email_required"));
-            return;
-        }
-
-        const MIN = 6;
-        if (content.trim().length < MIN) {
-            setError(`评论至少需要 ${MIN} 个字符`);
             return;
         }
 
