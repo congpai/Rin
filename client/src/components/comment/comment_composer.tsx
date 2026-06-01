@@ -111,6 +111,12 @@ export function CommentComposer({
             return;
         }
 
+        const MIN = 6;
+        if (content.trim().length < MIN) {
+            setError(`评论至少需要 ${MIN} 个字符`);
+            return;
+        }
+
         setBusy(true);
         setError("");
         const result = await onSubmit({
