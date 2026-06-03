@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import { Helmet } from 'react-helmet'
 import { useTranslation } from "react-i18next"
-import type { TagDetail } from "@rin/api"
+import type { Feed, TagDetail } from "@rin/api"
 import { FeedCard } from "../components/feed_card"
 import { Waiting } from "../components/loading"
 import { MomentItem } from "../components/moment_item"
@@ -9,8 +9,6 @@ import { client } from "../app/runtime"
 
 import { useSiteConfig } from "../hooks/useSiteConfig";
 import { siteName } from "../utils/constants"
-
-type TagFeedCard = TagDetail["feeds"][number] & { summary?: string };
 
 export function HashtagPage({ name }: { name: string }) {
     const { t } = useTranslation()
@@ -64,7 +62,7 @@ export function HashtagPage({ name }: { name: string }) {
                     <Waiting for={status === 'idle'}>
                         {feedCount > 0 ? (
                             <div className={feedListClass}>
-                                {hashtag?.feeds?.map((feed: TagFeedCard) => (
+                                {hashtag?.feeds?.map((feed: Feed) => (
                                     <FeedCard
                                         key={feed.id}
                                         id={String(feed.id)}
