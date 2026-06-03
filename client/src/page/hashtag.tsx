@@ -1,0 +1,103 @@
+import { useEffect, useRef, useState } from "react"
+import { Helmet } from 'react-helmet'
+import { useTranslation } from "react-i18next"
+import type { TagDetail } from "@rin/api"
+import { FeedCard } from "../components/feed_card"
+import { Waiting } from "../components/loading"
+import { MomentItem } from "../components/moment_item"
+import { client } from "../app/runtime"
+
+import { useSiteConfig } from "../hooks/useSiteConfig";
+import { siteName } from "../utils/constants"
+
+type TagFeedCard = TagDetail["feeds"][number] & { summary?: string };
+
+export function HashtagPage({ name }: { name: string }) {
+    const { t } = useTranslation()
+    const siteConfig = useSiteConfig();
+    const [status, setStatus] = useState<'loading' | 'idle'>('idle')
+    const [hashtag, setHashtag] = useState<TagDetail>()
+    const feedListClass = siteConfig.feedLayout === "masonry" ? "wauto columns-1 gap-5 md:columns-2" : "wauto flex flex-col";
+    const ref = useRef("")
+    function fetchFeeds() {
+        const nameDecoded = decodeURI(name)
+        client.tag.get(nameDecoded).then(({ data }) => {
+            if (data) {
+                setHashtag(data)
+                setStatus('idle')
+            }
+        })
+    }
+    useEffect(() => {
+        if (ref.current === name) return
+        setStatus('loading')
+        fetchFeeds()
+        ref.current = name
+    }, [name])
+
+    const feedCount = hashtag?.feeds?.length ?? 0
+    const momentCount = hashtag?.moments?.length ?? 0
+    const totalCount = feedCount + momentCount
+
+    return (
+        <>
+            <Helmet>
+                <title>{`${hashtag?.name} - ${siteConfig.name}`}</title>
+                <meta property="og:site_name" content={siteName} />
+                <meta property="og:title" content={hashtag?.name} />
+                <meta property="og:image" content={siteConfig.avatar} />
+                <meta property="og:type" content="article" />
+                <meta property="og:url" content={document.URL} />
+            </Helmet>
+            <Waiting for={hashtag || status === 'idle'}>
+                <main className="w-full flex flex-col justify-center items-center mb-8">
+                    <div className="wauto text-start text-black dark:text-white py-4 text-4xl font-bold">
+                        <p>
+                            {hashtag?.name}
+                        </p>
+                        {totalCount > 0 ? (
+                            <p className="text-sm mt-4 text-neutral-500 font-normal">
+                                {t('tag.total$count', { count: totalCount })}
+                            </p>
+                        ) : null}
+                    </div>
+                    <Waiting for={status === 'idle'}>
+                        {feedCount > 0 ? (
+                            <div className={feedListClass}>
+                                {hashtag?.feeds?.map((feed: TagFeedCard) => (
+                                    <FeedCard
+                                        key={feed.id}
+                                        id={String(feed.id)}
+                                        avatar={feed.avatar}
+                                        title={feed.title ?? ""}
+                                        summary={feed.summary ?? (feed.content.length > 100 ? feed.content.slice(0, 100) : feed.content)}
+                                        hashtags={feed.hashtags}
+                                        createdAt={new Date(feed.createdAt)}
+                                        updatedAt={new Date(feed.updatedAt)}
+                                    />
+                                ))}
+                            </div>
+                        ) : null}
+                        {momentCount > 0 ? (
+                            <div className="wauto mt-6 flex flex-col gap-4">
+                                {hashtag?.moments?.map((moment) => (
+                                    <MomentItem
+                                        key={moment.id}
+                                        moment={{
+                                            ...moment,
+                                            createdAt: new Date(moment.createdAt),
+                                            updatedAt: new Date(moment.updatedAt),
+                                        }}
+                                        canManage={false}
+                                        onDelete={() => {}}
+                                        onEdit={() => {}}
+                                    />
+                                ))}
+                            </div>
+                        ) : null}
+                    </Waiting>
+                </main>
+            </Waiting>
+        </>
+    )
+}
