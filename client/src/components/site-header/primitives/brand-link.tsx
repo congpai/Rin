@@ -64,7 +64,7 @@ export function BrandLink({
             </div>
           )}
           secondContent={(
-            <div className="grid h-full w-full place-items-center bg-[#111] p-1 text-center">
+            <div className="grid h-full w-full place-items-center bg-theme p-1 text-center text-white">
               <p className={avatarLabelClassName(resolvedAvatarSizePx)}>
                 {siteConfig.name}
               </p>
