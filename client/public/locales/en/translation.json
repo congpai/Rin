@@ -49,6 +49,18 @@
       "run": "Start backfill",
       "progress": "Processed {{processed}} / {{total}}, generated {{generated}} variants, failed {{failed}} images.",
       "result": "Thumbnail backfill finished: processed {{total}} originals, generated {{generated}} variants, failed {{failed}}."
+    },
+    "unreferenced_images": {
+      "title": "Clean Up Unreferenced Images",
+      "description": "Scan R2 storage and delete image objects that are not referenced by any post, moment, comment, or avatar.",
+      "eligible": "{{count}} objects pending",
+      "stored": "{{count}} objects in storage",
+      "referenced": "{{count}} referenced objects",
+      "not_listable": "R2 bucket binding is not configured; storage scan is unavailable.",
+      "note": "This removes orphaned uploads (e.g. images uploaded but never inserted). Images removed from content during edits are cleaned up automatically on save.",
+      "run": "Start cleanup",
+      "progress": "Processed {{processed}} / {{total}}, deleted {{deleted}} objects, failed {{failed}}.",
+      "result": "Cleanup finished: processed {{total}} keys, deleted {{deleted}} objects, failed {{failed}}."
     }
   },
   "ai_summary": {

@@ -108,6 +108,12 @@ export interface CompatTasksResponse {
     referencedOriginals: number;
     eligible: number;
   };
+  unreferencedImages: {
+    storedObjects: number;
+    referencedObjects: number;
+    eligible: number;
+    listable: boolean;
+  };
 }
 
 export interface CompatAISummaryActionResponse {
@@ -140,6 +146,17 @@ export interface CompatImageVariantRunResponse {
   processed: number;
   generated: number;
   skipped: number;
+  failed: number;
+}
+
+export interface CompatUnreferencedImageCandidatesResponse {
+  generatedAt: string;
+  items: string[];
+}
+
+export interface CompatUnreferencedImageRunResponse {
+  processed: number;
+  deleted: number;
   failed: number;
 }
 
@@ -555,6 +572,14 @@ class ConfigAPI {
 
   async runCompatImageVariantBackfill(keys: string[]): Promise<ApiResponse<CompatImageVariantRunResponse>> {
     return this.http.post<CompatImageVariantRunResponse>("/api/config/compat-tasks/image-variants", { keys });
+  }
+
+  async getCompatUnreferencedImageCandidates(): Promise<ApiResponse<CompatUnreferencedImageCandidatesResponse>> {
+    return this.http.get<CompatUnreferencedImageCandidatesResponse>("/api/config/compat-tasks/unreferenced-images");
+  }
+
+  async runCompatUnreferencedImageCleanup(keys: string[]): Promise<ApiResponse<CompatUnreferencedImageRunResponse>> {
+    return this.http.post<CompatUnreferencedImageRunResponse>("/api/config/compat-tasks/unreferenced-images", { keys });
   }
 
   async retryQueueTask(feedId: number): Promise<ApiResponse<QueueTaskActionResponse>> {

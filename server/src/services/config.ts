@@ -27,6 +27,10 @@ import {
     listImageVariantBackfillCandidates,
     runImageVariantBackfillForKeys,
 } from "./config-compat-image-variants";
+import {
+    listUnreferencedImageCandidates,
+    runUnreferencedImageCleanupForKeys,
+} from "./config-compat-unreferenced-images";
 
 export function ConfigService(): Hono {
     const app = new Hono();
@@ -321,6 +325,46 @@ export function ConfigService(): Hono {
         }
 
         return c.json(await wrapTime(c, 'compat_image_variants_run', runImageVariantBackfillForKeys(c.get('env'), keys)));
+    });
+
+    app.get('/compat-tasks/unreferenced-images', async (c: AppContext) => {
+        const admin = c.get('admin');
+
+        if (!admin) {
+            return c.text('Unauthorized', 401);
+        }
+
+        try {
+            return c.json(await wrapTime(c, 'compat_unreferenced_images_list', listUnreferencedImageCandidates(c.get('db'), c.get('env'))));
+        } catch (error) {
+            const message = error instanceof Error ? error.message : String(error);
+            return c.text(message, 400);
+        }
+    });
+
+    app.post('/compat-tasks/unreferenced-images', async (c: AppContext) => {
+        const admin = c.get('admin');
+
+        if (!admin) {
+            return c.text('Unauthorized', 401);
+        }
+
+        const body = c.req.header('content-type')?.includes('application/json')
+            ? await wrapTime(c, 'request_body', c.req.json()) as { keys?: string[] }
+            : {};
+        const keys = Array.isArray(body.keys)
+            ? body.keys.filter((key): key is string => typeof key === "string" && key.length > 0)
+            : [];
+
+        if (keys.length === 0) {
+            return c.text('keys are required', 400);
+        }
+
+        if (keys.length > 20) {
+            return c.text('At most 20 keys per request', 400);
+        }
+
+        return c.json(await wrapTime(c, 'compat_unreferenced_images_run', runUnreferencedImageCleanupForKeys(c.get('env'), keys)));
     });
 
     app.post('/queue-status/:id/retry', async (c: AppContext) => {

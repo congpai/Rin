@@ -19,17 +19,25 @@ export function CompatTasksPage() {
     aiSummary: { enabled: boolean; queueConfigured: boolean; eligible: number; forceEligible: number };
     blurhash: { eligible: number };
     imageVariants: { referencedOriginals: number; eligible: number };
+    unreferencedImages: { storedObjects: number; referencedObjects: number; eligible: number; listable: boolean };
   }>({
     aiSummary: { enabled: false, queueConfigured: false, eligible: 0, forceEligible: 0 },
     blurhash: { eligible: 0 },
     imageVariants: { referencedOriginals: 0, eligible: 0 },
+    unreferencedImages: { storedObjects: 0, referencedObjects: 0, eligible: 0, listable: false },
   });
-  const [runningTask, setRunningTask] = useState<"ai-summary" | "blurhash" | "image-variants" | null>(null);
+  const [runningTask, setRunningTask] = useState<"ai-summary" | "blurhash" | "image-variants" | "unreferenced-images" | null>(null);
   const [blurhashProgress, setBlurhashProgress] = useState({ total: 0, processed: 0, updated: 0, failed: 0 });
   const [variantProgress, setVariantProgress] = useState({
     total: 0,
     processed: 0,
     generated: 0,
+    failed: 0,
+  });
+  const [unreferencedProgress, setUnreferencedProgress] = useState({
+    total: 0,
+    processed: 0,
+    deleted: 0,
     failed: 0,
   });
   const { showAlert, AlertUI } = useAlert();
@@ -47,6 +55,12 @@ export function CompatTasksPage() {
           aiSummary: data.aiSummary,
           blurhash: data.blurhash,
           imageVariants: data.imageVariants ?? { referencedOriginals: 0, eligible: 0 },
+          unreferencedImages: data.unreferencedImages ?? {
+            storedObjects: 0,
+            referencedObjects: 0,
+            eligible: 0,
+            listable: false,
+          },
         });
       }
     }).finally(() => setLoading(false));
@@ -121,6 +135,49 @@ export function CompatTasksPage() {
     }
   };
 
+  const runUnreferencedImageCleanup = async () => {
+    setRunningTask("unreferenced-images");
+    setUnreferencedProgress({ total: 0, processed: 0, deleted: 0, failed: 0 });
+
+    try {
+      const { data, error } = await client.config.getCompatUnreferencedImageCandidates();
+      if (error) {
+        showAlert(error.value);
+        return;
+      }
+
+      const items = data?.items ?? [];
+      setUnreferencedProgress({ total: items.length, processed: 0, deleted: 0, failed: 0 });
+
+      let processed = 0;
+      let deleted = 0;
+      let failed = 0;
+      const batchSize = 20;
+
+      for (let index = 0; index < items.length; index += batchSize) {
+        const batch = items.slice(index, index + batchSize);
+        const response = await client.config.runCompatUnreferencedImageCleanup(batch);
+        if (response.error) {
+          failed += batch.length;
+        } else if (response.data) {
+          deleted += response.data.deleted;
+          failed += response.data.failed;
+        }
+        processed += batch.length;
+        setUnreferencedProgress({ total: items.length, processed, deleted, failed });
+      }
+
+      showAlert(t("compat_tasks.unreferenced_images.result", {
+        total: items.length,
+        deleted,
+        failed,
+      }));
+      loadStatus();
+    } finally {
+      setRunningTask(null);
+    }
+  };
+
   const runImageVariantBackfill = async () => {
     setRunningTask("image-variants");
     setVariantProgress({ total: 0, processed: 0, generated: 0, failed: 0 });
@@ -181,6 +238,46 @@ export function CompatTasksPage() {
 
       {!loading ? (
         <div className="space-y-4">
+          <SettingsCard tone={status.unreferencedImages.eligible > 0 ? "warning" : "success"}>
+            <SettingsCardHeader
+              title={t("compat_tasks.unreferenced_images.title")}
+              description={t("compat_tasks.unreferenced_images.description")}
+              badge={
+                <SettingsBadge tone={status.unreferencedImages.eligible > 0 ? "warning" : "success"}>
+                  {t("compat_tasks.unreferenced_images.eligible", { count: status.unreferencedImages.eligible })}
+                </SettingsBadge>
+              }
+            />
+            <SettingsCardBody>
+              <div className="space-y-3 text-sm text-neutral-600 dark:text-neutral-300">
+                {status.unreferencedImages.listable ? (
+                  <>
+                    <p>{t("compat_tasks.unreferenced_images.stored", { count: status.unreferencedImages.storedObjects })}</p>
+                    <p>{t("compat_tasks.unreferenced_images.referenced", { count: status.unreferencedImages.referencedObjects })}</p>
+                  </>
+                ) : (
+                  <p>{t("compat_tasks.unreferenced_images.not_listable")}</p>
+                )}
+                <p>{t("compat_tasks.unreferenced_images.note")}</p>
+                {runningTask === "unreferenced-images" ? (
+                  <p>
+                    {t("compat_tasks.unreferenced_images.progress", {
+                      processed: unreferencedProgress.processed,
+                      total: unreferencedProgress.total,
+                      deleted: unreferencedProgress.deleted,
+                      failed: unreferencedProgress.failed,
+                    })}
+                  </p>
+                ) : null}
+                <Button
+                  title={runningTask === "unreferenced-images" ? t("compat_tasks.running") : t("compat_tasks.unreferenced_images.run")}
+                  disabled={runningTask !== null || !status.unreferencedImages.listable || status.unreferencedImages.eligible === 0}
+                  onClick={runUnreferencedImageCleanup}
+                />
+              </div>
+            </SettingsCardBody>
+          </SettingsCard>
+
           <SettingsCard tone={status.imageVariants.eligible > 0 ? "warning" : "success"}>
             <SettingsCardHeader
               title={t("compat_tasks.image_variants.title")}

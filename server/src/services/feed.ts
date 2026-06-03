@@ -10,7 +10,7 @@ import { profileAsync } from "../core/server-timing";
 import { comments, feeds, moments, visits, visitStats } from "../db/schema";
 import { HyperLogLog } from "../utils/hyperloglog";
 import { extractImageWithMetadata } from "../utils/image";
-import { cleanupUnreferencedImagesFromContents } from "../utils/storage-image-cleanup";
+import { cleanupRemovedImagesFromPreviousContent, cleanupUnreferencedImagesFromContents } from "../utils/storage-image-cleanup";
 import { syncFeedAISummaryQueueState } from "./feed-ai-summary";
 import { bindTagToPost } from "./tag";
 import { clearFeedCache } from "./clear-feed-cache";
@@ -427,6 +427,16 @@ export function FeedService(): Hono<{
         }
 
         await profileAsync(c, 'feed_update_cache_invalidate', () => clearFeedCache(cache, id_num, feed.alias, alias || null));
+
+        if (content !== undefined && content !== feed.content) {
+            await profileAsync(c, 'feed_update_storage_cleanup', () => cleanupRemovedImagesFromPreviousContent(
+                db,
+                env,
+                feed.content,
+                content,
+            ));
+        }
+
         return c.text('Updated');
     });
 

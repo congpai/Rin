@@ -3,7 +3,7 @@ import { Hono } from "hono";
 import { momentComments, moments } from "../db/schema";
 import type { AppContext } from "../core/hono-types";
 import { profileAsync } from "../core/server-timing";
-import { cleanupUnreferencedImagesFromContents } from "../utils/storage-image-cleanup";
+import { cleanupRemovedImagesFromPreviousContent, cleanupUnreferencedImagesFromContents } from "../utils/storage-image-cleanup";
 import { bindTagToMoment } from "./tag";
 import { MAX_MOMENT_TAGS, normalizeTagNames } from "../utils/tag-names";
 
@@ -117,6 +117,7 @@ export function MomentsService(): Hono {
     app.post('/:id', async (c: AppContext) => {
         const db = c.get('db');
         const cache = c.get('cache');
+        const env = c.get('env');
         const uid = c.get('uid');
         const admin = c.get('admin');
         const id = c.req.param('id');
@@ -157,6 +158,16 @@ export function MomentsService(): Hono {
         }
         
         await profileAsync(c, 'moments_update_cache_invalidate', () => cache.deletePrefix('moments_'));
+
+        if (content !== moment.content) {
+            await profileAsync(c, 'moments_update_storage_cleanup', () => cleanupRemovedImagesFromPreviousContent(
+                db,
+                env,
+                moment.content,
+                content,
+            ));
+        }
+
         return c.text('Updated');
     });
 

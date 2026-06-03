@@ -49,6 +49,18 @@
       "run": "開始補齊",
       "progress": "已處理 {{processed}} / {{total}}，生成 {{generated}} 個變體，失敗 {{failed}} 張。",
       "result": "縮圖補齊完成：共處理 {{total}} 張原圖，生成 {{generated}} 個變體，失敗 {{failed}} 張。"
+    },
+    "unreferenced_images": {
+      "title": "清理未引用圖片",
+      "description": "掃描 R2 儲存，刪除未被任何文章、動態、評論或頭像引用的圖片物件。",
+      "eligible": "待清理 {{count}} 個",
+      "stored": "儲存中 {{count}} 個物件",
+      "referenced": "已引用 {{count}} 個物件",
+      "not_listable": "未設定 R2 bucket 綁定，無法掃描儲存。",
+      "note": "用於清理歷史上傳後未插入正文的孤兒圖片。編輯文章/動態儲存時會自動清理正文中刪掉的圖。",
+      "run": "開始清理",
+      "progress": "已處理 {{processed}} / {{total}}，刪除 {{deleted}} 個物件，失敗 {{failed}} 個。",
+      "result": "清理完成：共處理 {{total}} 個 key，刪除 {{deleted}} 個物件，失敗 {{failed}} 個。"
     }
   },
   "ai_summary": {

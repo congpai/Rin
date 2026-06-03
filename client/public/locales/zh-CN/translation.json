@@ -49,6 +49,18 @@
       "run": "开始补齐",
       "progress": "已处理 {{processed}} / {{total}}，生成 {{generated}} 个变体，失败 {{failed}} 张。",
       "result": "缩略图补齐完成：共处理 {{total}} 张原图，生成 {{generated}} 个变体，失败 {{failed}} 张。"
+    },
+    "unreferenced_images": {
+      "title": "清理未引用图片",
+      "description": "扫描 R2 存储，删除未被任何文章、动态、评论或头像引用的图片对象。",
+      "eligible": "待清理 {{count}} 个",
+      "stored": "存储中 {{count}} 个对象",
+      "referenced": "已引用 {{count}} 个对象",
+      "not_listable": "未配置 R2 bucket 绑定，无法扫描存储。",
+      "note": "用于清理历史上传后未插入正文的孤儿图片。编辑文章/动态保存时会自动清理正文中删掉的图。",
+      "run": "开始清理",
+      "progress": "已处理 {{processed}} / {{total}}，删除 {{deleted}} 个对象，失败 {{failed}} 个。",
+      "result": "清理完成：共处理 {{total}} 个 key，删除 {{deleted}} 个对象，失败 {{failed}} 个。"
     }
   },
   "ai_summary": {

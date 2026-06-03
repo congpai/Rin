@@ -6,6 +6,7 @@ import { clearFeedCache } from "./feed";
 import { contentHasImagesMissingMetadata } from "../utils/image";
 import { getAIConfig } from "../utils/db-config";
 import { countImageVariantBackfillEligible } from "./config-compat-image-variants";
+import { countUnreferencedStorageObjects } from "./config-compat-unreferenced-images";
 
 type ConfigReader = {
   get(key: string): Promise<unknown>;
@@ -50,6 +51,7 @@ export async function buildCompatTasksResponse(db: DB, serverConfig: ConfigReade
     },
   });
   const imageVariants = await countImageVariantBackfillEligible(db, env);
+  const unreferencedImages = await countUnreferencedStorageObjects(db, env);
 
   return {
     generatedAt: new Date().toISOString(),
@@ -66,6 +68,7 @@ export async function buildCompatTasksResponse(db: DB, serverConfig: ConfigReade
       referencedOriginals: imageVariants.referencedOriginals,
       eligible: imageVariants.eligible,
     },
+    unreferencedImages,
   };
 }
 

@@ -213,3 +213,16 @@ export async function cleanupUnreferencedImagesFromContents(
 
     return { scanned: keys.length, deleted, skipped };
 }
+
+export async function cleanupRemovedImagesFromPreviousContent(
+    db: DB,
+    env: Env,
+    previousContent: string,
+    nextContent?: string,
+) {
+    if (!previousContent || previousContent === nextContent) {
+        return { scanned: 0, deleted: 0, skipped: 0 };
+    }
+
+    return cleanupUnreferencedImagesFromContents(db, env, [previousContent]);
+}

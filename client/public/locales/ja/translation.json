@@ -49,6 +49,18 @@
       "run": "補完を開始",
       "progress": "{{processed}} / {{total}} 枚処理済み、{{generated}} バリアント生成、失敗 {{failed}} 枚。",
       "result": "サムネイル補完が完了しました。原画 {{total}} 枚を処理し、{{generated}} バリアントを生成、失敗 {{failed}} 枚。"
+    },
+    "unreferenced_images": {
+      "title": "未参照画像を削除",
+      "description": "R2 ストレージを走査し、記事・モーメント・コメント・アバターで参照されていない画像オブジェクトを削除します。",
+      "eligible": "削除対象 {{count}} 件",
+      "stored": "ストレージ内 {{count}} 件",
+      "referenced": "参照済み {{count}} 件",
+      "not_listable": "R2 bucket バインディングが未設定のため、ストレージ走査は利用できません。",
+      "note": "アップロード後に本文へ挿入されなかった孤児画像の削除に使用します。記事/モーメント保存時に本文から削除された画像は自動的にクリーンアップされます。",
+      "run": "クリーンアップを開始",
+      "progress": "{{processed}} / {{total}} 件処理済み、{{deleted}} 件削除、失敗 {{failed}} 件。",
+      "result": "クリーンアップ完了：{{total}} キーを処理、{{deleted}} 件削除、失敗 {{failed}} 件。"
     }
   },
   "ai_summary": {
