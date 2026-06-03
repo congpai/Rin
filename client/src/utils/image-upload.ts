@@ -163,11 +163,11 @@ async function createThumbnailFile(source: File, maxWidth: number) {
 
   const image = await loadImage(source);
   const longestSide = Math.max(image.naturalWidth, image.naturalHeight);
-  if (!longestSide || longestSide <= maxWidth) {
+  if (!longestSide) {
     return null;
   }
 
-  const scale = maxWidth / longestSide;
+  const scale = longestSide <= maxWidth ? 1 : maxWidth / longestSide;
   const width = Math.max(1, Math.round(image.naturalWidth * scale));
   const height = Math.max(1, Math.round(image.naturalHeight * scale));
   const mimeType = supportsWebpExport() ? "image/webp" : "image/jpeg";

@@ -45,7 +45,7 @@
       "description": "扫描文章、动态、评论和头像中引用的原图，在 R2 中补生成 _w320/_w640/_w960.webp 变体。",
       "eligible": "待补全 {{count}} 张",
       "referenced": "已引用原图 {{count}} 张",
-      "note": "任务在服务端执行，每批最多处理 5 张，已有变体会自动跳过。",
+      "note": "该任务在当前浏览器中执行：逐张加载原图、生成 WebP 变体并上传到 R2。Cloudflare Worker 无法可靠解码部分历史图片，因此改用浏览器 Canvas 处理。",
       "run": "开始补齐",
       "progress": "已处理 {{processed}} / {{total}}，生成 {{generated}} 个变体，失败 {{failed}} 张。",
       "result": "缩略图补齐完成：共处理 {{total}} 张原图，生成 {{generated}} 个变体，失败 {{failed}} 张。"

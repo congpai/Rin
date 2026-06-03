@@ -8,8 +8,7 @@ import { Button } from "../components/button";
 import { useAlert } from "../components/dialog";
 import { useSiteConfig } from "../hooks/useSiteConfig";
 import { enrichMarkdownImageMetadata } from "../utils/image-upload";
-
-const IMAGE_VARIANT_BATCH_SIZE = 5;
+import { backfillVariantsForStorageKey } from "../utils/image-variant-backfill";
 
 export function CompatTasksPage() {
   const { t } = useTranslation();
@@ -140,16 +139,11 @@ export function CompatTasksPage() {
       let generated = 0;
       let failed = 0;
 
-      for (let offset = 0; offset < items.length; offset += IMAGE_VARIANT_BATCH_SIZE) {
-        const batch = items.slice(offset, offset + IMAGE_VARIANT_BATCH_SIZE);
-        const response = await client.config.runCompatImageVariantBackfill(batch);
-        if (response.error) {
-          failed += batch.length;
-        } else if (response.data) {
-          generated += response.data.generated;
-          failed += response.data.failed;
-        }
-        processed += batch.length;
+      for (const storageKey of items) {
+        const result = await backfillVariantsForStorageKey(storageKey);
+        generated += result.generated;
+        failed += result.failed;
+        processed += 1;
         setVariantProgress({ total: items.length, processed, generated, failed });
       }
 

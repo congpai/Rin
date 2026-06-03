@@ -45,7 +45,7 @@
       "description": "Scan referenced originals in posts, moments, comments, and avatars, then generate _w320/_w640/_w960.webp variants in R2.",
       "eligible": "{{count}} images pending",
       "referenced": "{{count}} referenced originals",
-      "note": "Runs on the server in batches of up to 5 images. Existing variants are skipped.",
+      "note": "This task runs in the current browser: it loads each original, generates WebP variants with Canvas, and uploads them to R2. Some legacy images cannot be decoded reliably in Cloudflare Workers, so the browser handles backfill instead.",
       "run": "Start backfill",
       "progress": "Processed {{processed}} / {{total}}, generated {{generated}} variants, failed {{failed}} images.",
       "result": "Thumbnail backfill finished: processed {{total}} originals, generated {{generated}} variants, failed {{failed}}."
