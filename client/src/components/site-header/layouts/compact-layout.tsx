@@ -14,7 +14,8 @@ export const compactLayoutDefinition: HeaderLayoutDefinition = {
             siteConfig={siteConfig}
             compact
             className="min-w-0 flex items-center"
-            avatarClassName="h-10 w-10 rounded-full"
+            avatarSizePx={100}
+            avatarClassName="rounded-full border-2 border-white/80 dark:border-white/20"
             titleClassName="text-base font-bold tracking-tight text-neutral-900 dark:text-neutral-50"
             showDescription={false}
           />
@@ -40,7 +41,8 @@ export const compactLayoutDefinition: HeaderLayoutDefinition = {
         isAtTop={isAtTop}
         showDescription={false}
         showInlineNav
-        avatarClassName="h-8 w-8 rounded-lg"
+        avatarSizePx={48}
+        avatarClassName="rounded-lg border-2 border-white/80 dark:border-white/20"
       />
     );
   },

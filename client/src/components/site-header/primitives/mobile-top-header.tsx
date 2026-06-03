@@ -13,6 +13,7 @@ export function MobileTopHeader({
   showDescription = false,
   showInlineNav = false,
   avatarClassName,
+  avatarSizePx,
 }: {
   children?: React.ReactNode;
   profile?: Profile | null;
@@ -21,6 +22,7 @@ export function MobileTopHeader({
   showDescription?: boolean;
   showInlineNav?: boolean;
   avatarClassName?: string;
+  avatarSizePx?: number;
 }) {
   return (
     <div className={`flex w-full items-center justify-between gap-3 px-4 py-2 lg:hidden ${isAtTop ? "bg-transparent backdrop-blur-none" : "bg-white/20 backdrop-blur-xl dark:bg-white/[0.03]"}`}>
@@ -31,6 +33,7 @@ export function MobileTopHeader({
           showDescription={showDescription}
           className="min-w-0 flex flex-row items-center"
           avatarClassName={avatarClassName}
+          avatarSizePx={avatarSizePx}
         />
         {showInlineNav ? (
           <div className="hidden min-w-0 flex-1 items-center sm:flex">
