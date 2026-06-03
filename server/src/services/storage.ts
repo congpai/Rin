@@ -53,9 +53,9 @@ export function StorageService(): Hono {
                     file.type || "application/octet-stream",
                 ));
 
-                if (c.executionCtx) {
+                try {
                     c.executionCtx.waitUntil(variantTask);
-                } else {
+                } catch {
                     await variantTask;
                 }
             }
