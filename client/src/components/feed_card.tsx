@@ -102,7 +102,7 @@ const FEED_CARD_STYLES: Record<
 
 export type FeedCardProps = {
     id: string;
-    avatar?: string;
+    avatar?: string | null;
     draft?: number;
     listed?: number;
     top?: number;
