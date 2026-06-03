@@ -38,6 +38,9 @@ export interface Feed {
   pv: number;
   uv: number;
   top?: number;
+  /** 列表/标签页封面图（首图 URL，含 metadata fragment） */
+  avatar?: string | null;
+  summary?: string | null;
 }
 
 export interface FeedListResponse {
