@@ -10,7 +10,7 @@ import {
     collectStorageKeysFromContents,
     resolveStorageKeyFromImageUrl,
 } from "../utils/storage-image-cleanup";
-import { headStorageObject } from "../utils/storage";
+import { isVariantObjectPresent, resolveFullStorageKey } from "../utils/storage";
 
 const ORIGINAL_IMAGE_KEY_RE = /^[a-f0-9]{40}\.[a-z0-9]+$/i;
 const SKIP_EXTENSIONS = new Set(["gif", "svg", "svgz"]);
@@ -117,10 +117,11 @@ export async function storageKeyNeedsVariantBackfill(env: Env, storageKey: strin
         return false;
     }
 
+    const fullKey = resolveFullStorageKey(env, storageKey);
+
     for (const width of THUMBNAIL_WIDTHS) {
-        const variantKey = buildVariantStorageKey(storageKey, width);
-        const existing = await headStorageObject(env, variantKey);
-        if (!existing) {
+        const variantKey = buildVariantStorageKey(fullKey, width);
+        if (!(await isVariantObjectPresent(env, variantKey))) {
             return true;
         }
     }
@@ -174,12 +175,13 @@ export async function runImageVariantBackfillForKeys(env: Env, storageKeys: stri
         try {
             const result = await generateImageVariants(
                 env,
-                storageKeyToUploadKey(storageKey, env),
+                storageKey,
                 guessContentTypeFromStorageKey(storageKey),
             );
             generated += result.generated;
             skipped += result.skipped;
-            if (result.generated === 0 && result.skipped === 0) {
+            failed += result.failed;
+            if (result.generated === 0 && result.skipped === 0 && result.failed === 0) {
                 failed += 1;
             }
         } catch (error) {
