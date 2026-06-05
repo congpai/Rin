@@ -84,9 +84,19 @@ function isBuiltInMetingPath(pathname: string) {
   return path === "/api/meting" || path.startsWith("/api/meting/");
 }
 
+export function sanitizeMetingUpstreamInput(rawValue: string) {
+  return rawValue
+    .trim()
+    .replace(/\r?\n/g, "")
+    .replace(/[\u200B-\u200D\uFEFF]/g, "")
+    .replace(/^['"]+|['"]+$/g, "")
+    .replace(/\uFF1A/g, ":")
+    .replace(/\uFF0F/g, "/");
+}
+
 export function normalizeMetingUpstreamUrl(rawValue: string, c?: AppContext) {
-  let value = rawValue.trim().replace(/\r?\n/g, "");
-  if (!value) {
+  let value = sanitizeMetingUpstreamInput(rawValue);
+  if (!value || /^(null|undefined|none|n\/a)$/i.test(value)) {
     return "";
   }
 
@@ -95,7 +105,7 @@ export function normalizeMetingUpstreamUrl(rawValue: string, c?: AppContext) {
       return "";
     }
     if (!c) {
-      throw new Error("Meting upstream URL is invalid");
+      return "";
     }
     value = `${resolveRequestOrigin(c)}${value}`;
   }
@@ -144,6 +154,18 @@ export function normalizeMetingUpstreamUrl(rawValue: string, c?: AppContext) {
   }
 
   return normalized;
+}
+
+export function tryResolveMetingUpstreamUrl(rawValue: string, c: AppContext) {
+  try {
+    return normalizeMetingUpstreamUrl(rawValue, c);
+  } catch (error) {
+    console.warn(
+      "Invalid meting.upstream_url, falling back to built-in Meting API:",
+      error instanceof Error ? error.message : rawValue,
+    );
+    return "";
+  }
 }
 
 export function resolveUpstreamApiUrl(upstreamBase: string) {

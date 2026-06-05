@@ -6,10 +6,10 @@ import { formatMetingLyric } from "../utils/meting-lyric";
 import {
   isHttpUrl,
   normalizeMetingResourceId,
-  normalizeMetingUpstreamUrl,
   normalizeStreamUrl,
   resolveMetingBaseUrl,
   resolveUpstreamApiUrl,
+  tryResolveMetingUpstreamUrl,
 } from "../utils/meting-helpers";
 
 const VALID_SERVERS = new Set(["netease", "tencent", "kugou", "baidu", "kuwo"]);
@@ -95,7 +95,7 @@ async function proxyUpstreamMetingApi(c: AppContext, upstreamBase: string) {
 async function buildMetingApiResponse(c: AppContext) {
   const serverConfig = c.get("serverConfig");
   const upstreamRaw = String(serverConfig.get("meting.upstream_url") ?? "").trim();
-  const upstreamBase = normalizeMetingUpstreamUrl(upstreamRaw, c);
+  const upstreamBase = tryResolveMetingUpstreamUrl(upstreamRaw, c);
   if (upstreamBase) {
     return proxyUpstreamMetingApi(c, upstreamBase);
   }
