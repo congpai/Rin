@@ -360,7 +360,15 @@
       "title": "Music Player",
       "enabled": {
         "title": "Enable sticky player",
-        "desc": "Show an APlayer bar at the bottom. Supports NetEase and QQ Music playlists."
+        "desc": "After enabling, add a playlist/song ID or upload MP3, then save. Cookies only affect platform parsing."
+      },
+      "source": {
+        "title": "Music source",
+        "desc": "Platform playlist/song or your own MP3 files",
+        "options": {
+          "platform": "NetEase / QQ / etc.",
+          "custom": "Custom MP3"
+        }
       },
       "server": {
         "title": "Music platform",
@@ -384,8 +392,8 @@
         }
       },
       "id": {
-        "title": "Playlist / resource ID",
-        "desc": "NetEase: numeric ID from share link. QQ Music: playlist ID",
+        "title": "Playlist / song ID",
+        "desc": "Use playlist + ID for playlists, or song + ID for a single track",
         "label": "Resource ID"
       },
       "autoplay": {
@@ -409,6 +417,17 @@
         "title": "QQ Music cookie",
         "desc": "Optional, recommended for Tencent parsing",
         "label": "Tencent Cookie"
+      },
+      "custom": {
+        "track_title": "Track {{index}}",
+        "track_desc": "Upload MP3 or paste an audio URL",
+        "name": "Title",
+        "artist": "Artist",
+        "url": "Audio URL",
+        "upload": "Upload MP3",
+        "uploading": "Uploading...",
+        "add": "Add track",
+        "remove": "Remove"
       }
     },
     "webhook": {

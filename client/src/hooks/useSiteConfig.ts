@@ -1,10 +1,16 @@
-import { useContext } from "react";
+import { useContext, useMemo } from "react";
 import { ClientConfigContext } from "../state/config";
 import { normalizeFeedCardVariant } from "../components/feed-card-options";
 import { normalizeFeedLayout } from "../components/feed-layout-options";
+import {
+  normalizeMusicSource,
+  parseCustomMusicTracks,
+  type MusicSource,
+} from "../utils/music-config";
 
 export const MUSIC_SERVERS = ["netease", "tencent", "kugou", "baidu", "kuwo"] as const;
 export const MUSIC_TYPES = ["playlist", "song", "album", "artist"] as const;
+export const MUSIC_SOURCES = ["platform", "custom"] as const;
 
 export type MusicServer = typeof MUSIC_SERVERS[number];
 export type MusicType = typeof MUSIC_TYPES[number];
@@ -23,9 +29,11 @@ export const SITE_CONFIG_KEYS = {
     headerLayout: "header.layout",
     themeColor: "theme.color",
     musicEnabled: "music.enabled",
+    musicSource: "music.source",
     musicServer: "music.server",
     musicType: "music.type",
     musicId: "music.id",
+    musicCustomTracks: "music.custom_tracks",
     musicAutoplay: "music.autoplay",
 } as const;
 
@@ -57,6 +65,12 @@ export function useSiteConfig() {
             : typeof pageSizeValue === "string"
                 ? parseInt(pageSizeValue, 10)
                 : NaN;
+    const musicSource = normalizeMusicSource(config.get(SITE_CONFIG_KEYS.musicSource));
+    const musicCustomTracksRaw = config.get(SITE_CONFIG_KEYS.musicCustomTracks);
+    const musicCustomTracks = useMemo(
+        () => parseCustomMusicTracks(musicCustomTracksRaw),
+        [musicCustomTracksRaw],
+    );
 
     return {
         name: config.get<string>(SITE_CONFIG_KEYS.name) || "Rin",
@@ -71,9 +85,11 @@ export function useSiteConfig() {
         headerLayout: config.get<string>(SITE_CONFIG_KEYS.headerLayout) || "classic",
         themeColor: config.get<string>(SITE_CONFIG_KEYS.themeColor) || "#fc466b",
         musicEnabled: parseBoolean(config.get(SITE_CONFIG_KEYS.musicEnabled)),
+        musicSource: musicSource as MusicSource,
         musicServer: normalizeMusicServer(config.get<string>(SITE_CONFIG_KEYS.musicServer) || "netease"),
         musicType: normalizeMusicType(config.get<string>(SITE_CONFIG_KEYS.musicType) || "playlist"),
         musicId: config.get<string>(SITE_CONFIG_KEYS.musicId) || "",
+        musicCustomTracks,
         musicAutoplay: parseBoolean(config.get(SITE_CONFIG_KEYS.musicAutoplay)),
     };
 }

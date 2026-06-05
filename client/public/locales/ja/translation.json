@@ -345,7 +345,15 @@
       "title": "ミュージックプレイヤー",
       "enabled": {
         "title": "固定プレイヤーを有効化",
-        "desc": "ページ下部に APlayer を表示。NetEase と QQ ミュージックのプレイリストに対応"
+        "desc": "有効化後、プレイリスト/曲 ID または MP3 を追加して保存してください。Cookie は解析のみに影響します。"
+      },
+      "source": {
+        "title": "音楽ソース",
+        "desc": "プラットフォームのプレイリスト/曲、または独自 MP3",
+        "options": {
+          "platform": "NetEase / QQ など",
+          "custom": "独自 MP3"
+        }
       },
       "server": {
         "title": "音楽プラットフォーム",
@@ -394,6 +402,17 @@
         "title": "QQ Music Cookie",
         "desc": "任意。Tencent 解析用。海外からのアクセスでは推奨",
         "label": "Tencent Cookie"
+      },
+      "custom": {
+        "track_title": "トラック {{index}}",
+        "track_desc": "MP3 をアップロードするか URL を入力",
+        "name": "曲名",
+        "artist": "アーティスト",
+        "url": "音声 URL",
+        "upload": "MP3 をアップロード",
+        "uploading": "アップロード中...",
+        "add": "曲を追加",
+        "remove": "削除"
       }
     },
     "webhook": {

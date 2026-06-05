@@ -360,7 +360,15 @@
       "title": "音乐播放器",
       "enabled": {
         "title": "启用吸底播放器",
-        "desc": "在页面底部显示 APlayer 音乐播放器，支持网易云与 QQ 音乐歌单"
+        "desc": "开启后还需填写歌单/单曲 ID 或上传 MP3，并点击保存。Cookie 仅影响平台解析，不影响播放器显示。"
+      },
+      "source": {
+        "title": "音乐来源",
+        "desc": "平台歌单/单曲，或上传自己的 MP3",
+        "options": {
+          "platform": "网易云 / QQ 等平台",
+          "custom": "自有 MP3"
+        }
       },
       "server": {
         "title": "音乐平台",
@@ -384,8 +392,8 @@
         }
       },
       "id": {
-        "title": "歌单 / 资源 ID",
-        "desc": "填写对应平台的歌单 ID。网易云分享链接中的数字，QQ 音乐为歌单 ID",
+        "title": "歌单 / 单曲 ID",
+        "desc": "歌单选 playlist + 歌单 ID；单曲选 song + 歌曲 ID。网易云分享链接里的数字即可",
         "label": "资源 ID"
       },
       "autoplay": {
@@ -409,6 +417,17 @@
         "title": "QQ 音乐 Cookie",
         "desc": "可选，用于 QQ 音乐解析。海外访问建议配置",
         "label": "Tencent Cookie"
+      },
+      "custom": {
+        "track_title": "曲目 {{index}}",
+        "track_desc": "上传 MP3 或填写音频 URL",
+        "name": "歌名",
+        "artist": "歌手",
+        "url": "音频 URL",
+        "upload": "上传 MP3",
+        "uploading": "上传中...",
+        "add": "添加曲目",
+        "remove": "删除"
       }
     },
     "webhook": {

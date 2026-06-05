@@ -17,7 +17,7 @@ import {
 import { FEED_CARD_VARIANTS, normalizeFeedCardVariant } from "../components/feed-card-options";
 import { FeedCardPreview } from "../components/feed-card-preview";
 import { FEED_LAYOUT_OPTIONS, normalizeFeedLayout } from "../components/feed-layout-options";
-import { MUSIC_SERVERS, MUSIC_TYPES, useSiteConfig } from "../hooks/useSiteConfig";
+import { MUSIC_SERVERS, MUSIC_SOURCES, MUSIC_TYPES, useSiteConfig } from "../hooks/useSiteConfig";
 import { applyThemeColor, normalizeThemeColor } from "../utils/theme-color";
 import { AISummarySettings } from "./settings-ai";
 import { ItemButton, ItemImageInput, ItemInput, ItemSwitch, ItemTitle, ItemWithUpload } from "./settings-items";
@@ -33,6 +33,7 @@ import {
   updateDraftConfig,
   uploadFavicon,
 } from "./settings-helpers";
+import { SettingsMusicTracksEditor } from "./settings-music";
 
 import "../utils/thumb.css";
 
@@ -79,6 +80,7 @@ export function Settings() {
         initialDraftRef.current = state.draft;
         setHasStoredAiApiKey(state.hasStoredAiApiKey);
         mergeSessionConfig(state.draft.clientConfig);
+        window.dispatchEvent(new Event("rin:config-updated"));
         applyThemeColor(getDraftThemeColor(state.draft));
       })
       .catch((err: any) => {
@@ -122,6 +124,7 @@ export function Settings() {
       setHasStoredAiApiKey(state.hasStoredAiApiKey || aiValue.apiKey.trim().length > 0);
       mergeSessionConfig(state.draft.clientConfig);
       window.dispatchEvent(new Event("storage"));
+      window.dispatchEvent(new Event("rin:config-updated"));
       showAlert(t("settings.ai_summary.save_success"));
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
@@ -526,61 +529,98 @@ export function Settings() {
               <SettingsCardRow
                 header={
                   <SettingsCardHeader
-                    title={t("settings.music.server.title")}
-                    description={t("settings.music.server.desc")}
+                    title={t("settings.music.source.title")}
+                    description={t("settings.music.source.desc")}
                   />
                 }
                 action={
                   <SearchableSelect
-                    value={String(clientConfig.get("music.server") ?? "netease")}
+                    value={String(clientConfig.get("music.source") ?? "platform")}
                     onChange={(value) => {
-                      setConfigValue("client", "music.server", value);
+                      setConfigValue("client", "music.source", value);
                     }}
-                    options={MUSIC_SERVERS.map((value) => ({
-                      label: t(`settings.music.server.options.${value}`),
+                    options={MUSIC_SOURCES.map((value) => ({
+                      label: t(`settings.music.source.options.${value}`),
                       value,
                     }))}
-                    placeholder={t("settings.music.server.title")}
+                    placeholder={t("settings.music.source.title")}
                   />
                 }
               />
             </SettingsCard>
           </div>
-          <div className="w-full">
-            <SettingsCard>
-              <SettingsCardRow
-                header={
-                  <SettingsCardHeader
-                    title={t("settings.music.type.title")}
-                    description={t("settings.music.type.desc")}
+          {String(clientConfig.get("music.source") ?? "platform") === "platform" ? (
+            <>
+              <div className="w-full">
+                <SettingsCard>
+                  <SettingsCardRow
+                    header={
+                      <SettingsCardHeader
+                        title={t("settings.music.server.title")}
+                        description={t("settings.music.server.desc")}
+                      />
+                    }
+                    action={
+                      <SearchableSelect
+                        value={String(clientConfig.get("music.server") ?? "netease")}
+                        onChange={(value) => {
+                          setConfigValue("client", "music.server", value);
+                        }}
+                        options={MUSIC_SERVERS.map((value) => ({
+                          label: t(`settings.music.server.options.${value}`),
+                          value,
+                        }))}
+                        placeholder={t("settings.music.server.title")}
+                      />
+                    }
                   />
-                }
-                action={
-                  <SearchableSelect
-                    value={String(clientConfig.get("music.type") ?? "playlist")}
-                    onChange={(value) => {
-                      setConfigValue("client", "music.type", value);
-                    }}
-                    options={MUSIC_TYPES.map((value) => ({
-                      label: t(`settings.music.type.options.${value}`),
-                      value,
-                    }))}
-                    placeholder={t("settings.music.type.title")}
+                </SettingsCard>
+              </div>
+              <div className="w-full">
+                <SettingsCard>
+                  <SettingsCardRow
+                    header={
+                      <SettingsCardHeader
+                        title={t("settings.music.type.title")}
+                        description={t("settings.music.type.desc")}
+                      />
+                    }
+                    action={
+                      <SearchableSelect
+                        value={String(clientConfig.get("music.type") ?? "playlist")}
+                        onChange={(value) => {
+                          setConfigValue("client", "music.type", value);
+                        }}
+                        options={MUSIC_TYPES.map((value) => ({
+                          label: t(`settings.music.type.options.${value}`),
+                          value,
+                        }))}
+                        placeholder={t("settings.music.type.title")}
+                      />
+                    }
                   />
-                }
+                </SettingsCard>
+              </div>
+              <ItemInput
+                title={t("settings.music.id.title")}
+                description={t("settings.music.id.desc")}
+                configKeyTitle={t("settings.music.id.label")}
+                value={String(clientConfig.get("music.id") ?? "")}
+                placeholder={t("settings.music.id.label")}
+                onChange={(value) => {
+                  setConfigValue("client", "music.id", value);
+                }}
               />
-            </SettingsCard>
-          </div>
-          <ItemInput
-            title={t("settings.music.id.title")}
-            description={t("settings.music.id.desc")}
-            configKeyTitle={t("settings.music.id.label")}
-            value={String(clientConfig.get("music.id") ?? "")}
-            placeholder={t("settings.music.id.label")}
-            onChange={(value) => {
-              setConfigValue("client", "music.id", value);
-            }}
-          />
+            </>
+          ) : (
+            <SettingsMusicTracksEditor
+              value={String(clientConfig.get("music.custom_tracks") ?? "[]")}
+              onChange={(value) => {
+                setConfigValue("client", "music.custom_tracks", value);
+              }}
+              onError={showAlert}
+            />
+          )}
           <ItemSwitch
             title={t("settings.music.autoplay.title")}
             description={t("settings.music.autoplay.desc")}

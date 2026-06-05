@@ -23,9 +23,11 @@ export const CLIENT_CONFIG_DEFAULTS = new Map(
     "site.avatar_hover_label": "",
     "site.page_size": 5,
     "music.enabled": false,
+    "music.source": "platform",
     "music.server": "netease",
     "music.type": "playlist",
     "music.id": "",
+    "music.custom_tracks": "[]",
     "music.autoplay": false,
   }),
 );
