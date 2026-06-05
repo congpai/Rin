@@ -7,11 +7,14 @@ import { formatMetingLyric } from "../utils/meting-lyric";
 import {
   isHttpUrl,
   normalizeMetingResourceId,
-  normalizeStreamUrl,
   resolveMetingBaseUrl,
   resolveUpstreamApiUrl,
   tryResolveMetingUpstreamUrl,
 } from "../utils/meting-helpers";
+import {
+  proxyAudioStream,
+  resolveMetingPlayUrl,
+} from "../utils/meting-stream";
 
 const VALID_SERVERS = new Set(["netease", "tencent", "kugou", "baidu", "kuwo"]);
 const VALID_TYPES = new Set(["song", "album", "search", "artist", "playlist", "lrc", "url", "pic"]);
@@ -75,6 +78,26 @@ function getMetingToken(c: AppContext) {
   return String(serverConfig.get("meting.token") ?? "token");
 }
 
+function createMetingInstance(c: AppContext, server: string) {
+  const serverConfig = c.get("serverConfig");
+  const meting = new Meting(server);
+  meting.format(true);
+
+  const cookieKey = server === "netease"
+    ? "meting.cookie_netease"
+    : server === "tencent"
+      ? "meting.cookie_tencent"
+      : "";
+  if (cookieKey) {
+    const cookie = String(serverConfig.get(cookieKey) ?? "").trim();
+    if (cookie) {
+      meting.cookie(cookie);
+    }
+  }
+
+  return meting;
+}
+
 async function proxyUpstreamMetingApi(c: AppContext, upstreamBase: string) {
   const requestUrl = new URL(c.req.url);
   const target = new URL(resolveUpstreamApiUrl(upstreamBase));
@@ -126,23 +149,35 @@ async function buildMetingApiResponse(c: AppContext) {
     }
   }
 
+  if (type === "url") {
+    const streamCacheKey = `${server}/stream/${id}`;
+    let streamUrl = getCachedValue(streamCacheKey) as string | undefined;
+    if (!streamUrl) {
+      const meting = createMetingInstance(c, server);
+      streamUrl = await resolveMetingPlayUrl(server, id, meting);
+      if (streamUrl) {
+        setCachedValue(streamCacheKey, streamUrl, 1000 * 60 * 10);
+      }
+    }
+
+    if (!streamUrl || !isHttpUrl(streamUrl)) {
+      return c.json({
+        message: "无法获取播放地址，请在设置中填写网易云 Cookie 或稍后重试",
+      }, 404);
+    }
+
+    const range = c.req.header("range") ?? c.req.header("Range");
+    const proxied = await proxyAudioStream(server, streamUrl, range);
+    if (!proxied.ok) {
+      return new Response(null, { status: proxied.status });
+    }
+    return proxied;
+  }
+
   const cacheKey = `${server}/${type}/${id}`;
   let data = getCachedValue(cacheKey);
   if (data === undefined) {
-    const meting = new Meting(server);
-    meting.format(true);
-
-    const cookieKey = server === "netease"
-      ? "meting.cookie_netease"
-      : server === "tencent"
-        ? "meting.cookie_tencent"
-        : "";
-    if (cookieKey) {
-      const cookie = String(serverConfig.get(cookieKey) ?? "").trim();
-      if (cookie) {
-        meting.cookie(cookie);
-      }
-    }
+    const meting = createMetingInstance(c, server);
 
     const method = METING_METHODS[type as keyof typeof METING_METHODS];
     let response: string;
@@ -162,16 +197,8 @@ async function buildMetingApiResponse(c: AppContext) {
     setCachedValue(
       cacheKey,
       data,
-      type === "url" ? 1000 * 60 * 10 : 1000 * 60 * 60,
+      1000 * 60 * 60,
     );
-  }
-
-  if (type === "url") {
-    const url = normalizeStreamUrl(server, String((data as MetingUrlResult).url ?? ""));
-    if (!isHttpUrl(url)) {
-      return c.body(null, 404);
-    }
-    return c.redirect(url, 302);
   }
 
   if (type === "pic") {

@@ -1,0 +1,148 @@
+import type Meting from "@meting/core";
+import { isHttpUrl, normalizeStreamUrl } from "./meting-helpers";
+
+const INJAHOW_METING_BASE = "https://api.injahow.cn/meting";
+
+type MetingUrlResult = {
+  url?: string;
+};
+
+type MetingInstance = InstanceType<typeof Meting>;
+
+export async function fetchMetingUrlFromProvider(
+  server: string,
+  meting: MetingInstance,
+  id: string,
+) {
+  const response = await meting.url(id);
+  try {
+    const data = JSON.parse(response) as MetingUrlResult;
+    const url = normalizeStreamUrl(server, String(data.url ?? ""));
+    return isHttpUrl(url) ? url : "";
+  } catch {
+    return "";
+  }
+}
+
+type MetingUrlPayload = MetingUrlResult | { data?: MetingUrlResult };
+
+function readUrlFromPayload(payload: MetingUrlPayload) {
+  if ("url" in payload && payload.url) {
+    return payload.url;
+  }
+  if ("data" in payload && payload.data?.url) {
+    return payload.data.url;
+  }
+  return "";
+}
+
+export async function fetchInjahowPlayUrl(server: string, id: string) {
+  const target = `${INJAHOW_METING_BASE}/?server=${encodeURIComponent(server)}&type=url&id=${encodeURIComponent(id)}`;
+  const response = await fetch(target, { redirect: "manual" });
+
+  if (response.status >= 300 && response.status < 400) {
+    const location = response.headers.get("location") ?? "";
+    const url = normalizeStreamUrl(server, location);
+    return isHttpUrl(url) ? url : "";
+  }
+
+  const raw = await response.text().catch(() => "");
+  if (!raw) {
+    return "";
+  }
+
+  try {
+    const payload = JSON.parse(raw) as MetingUrlPayload;
+    const url = normalizeStreamUrl(server, String(readUrlFromPayload(payload)));
+    return isHttpUrl(url) ? url : "";
+  } catch {
+    return "";
+  }
+}
+
+export async function resolveMetingPlayUrl(
+  server: string,
+  id: string,
+  meting: MetingInstance,
+) {
+  const directUrl = await fetchMetingUrlFromProvider(server, meting, id);
+  if (directUrl) {
+    return directUrl;
+  }
+
+  if (server === "netease") {
+    return fetchInjahowPlayUrl(server, id);
+  }
+
+  return "";
+}
+
+export function buildStreamReferer(server: string) {
+  switch (server) {
+    case "netease":
+      return "https://music.163.com/";
+    case "tencent":
+      return "https://y.qq.com/";
+    case "kugou":
+      return "https://www.kugou.com/";
+    case "baidu":
+      return "https://music.baidu.com/";
+    case "kuwo":
+      return "https://www.kuwo.cn/";
+    default:
+      return "";
+  }
+}
+
+export async function proxyAudioStream(
+  server: string,
+  streamUrl: string,
+  rangeHeader?: string | null,
+) {
+  const headers: Record<string, string> = {
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+  };
+  const referer = buildStreamReferer(server);
+  if (referer) {
+    headers.Referer = referer;
+  }
+  if (rangeHeader) {
+    headers.Range = rangeHeader;
+  }
+
+  const upstream = await fetch(streamUrl, {
+    headers,
+    redirect: "follow",
+  });
+
+  if (!upstream.ok) {
+    return upstream;
+  }
+
+  const responseHeaders = new Headers();
+  responseHeaders.set(
+    "Content-Type",
+    upstream.headers.get("Content-Type") ?? "audio/mpeg",
+  );
+  responseHeaders.set(
+    "Accept-Ranges",
+    upstream.headers.get("Accept-Ranges") ?? "bytes",
+  );
+
+  const contentLength = upstream.headers.get("Content-Length");
+  if (contentLength) {
+    responseHeaders.set("Content-Length", contentLength);
+  }
+
+  const contentRange = upstream.headers.get("Content-Range");
+  if (contentRange) {
+    responseHeaders.set("Content-Range", contentRange);
+  }
+
+  responseHeaders.set("Cache-Control", "private, max-age=600");
+
+  return new Response(upstream.body, {
+    status: upstream.status,
+    headers: responseHeaders,
+  });
+}
