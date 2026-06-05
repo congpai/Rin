@@ -1,8 +1,6 @@
-export {};
-
-declare global {
-  interface Window {
-    APlayer?: new (options: {
+declare module "aplayer" {
+  export default class APlayer {
+    constructor(options: {
       container: HTMLElement;
       fixed?: boolean;
       mini?: boolean;
@@ -21,8 +19,7 @@ declare global {
         cover?: string;
         lrc?: string;
       }>;
-    }) => {
-      destroy: () => void;
-    };
+    });
+    destroy(): void;
   }
 }

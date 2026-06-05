@@ -1,50 +1,14 @@
-import { useEffect, useRef } from "react";
-import { useSiteConfig } from "../hooks/useSiteConfig";
+import APlayer from "aplayer";
+import { useEffect, useRef, useState } from "react";
+import { useMusicPlayerConfig } from "../hooks/useMusicPlayerConfig";
 import {
   mapCustomTracks,
   mapMetingTracks,
   type MetingApiTrack,
 } from "../utils/music-config";
+import "aplayer/dist/APlayer.min.css";
 
-const APLAYER_CSS = "https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.css";
-const APLAYER_JS = "https://cdn.jsdelivr.net/npm/aplayer/dist/APlayer.min.js";
-
-function loadStylesheet(href: string) {
-  if (document.querySelector(`link[href="${href}"]`)) {
-    return Promise.resolve();
-  }
-  return new Promise<void>((resolve, reject) => {
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = href;
-    link.onload = () => resolve();
-    link.onerror = () => reject(new Error(`Failed to load stylesheet: ${href}`));
-    document.head.appendChild(link);
-  });
-}
-
-function loadScript(src: string) {
-  return new Promise<void>((resolve, reject) => {
-    const existing = document.querySelector(`script[data-rin-src="${src}"]`) as HTMLScriptElement | null;
-    if (existing?.dataset.rinLoaded === "true") {
-      resolve();
-      return;
-    }
-
-    const script = existing ?? document.createElement("script");
-    script.src = src;
-    script.async = true;
-    script.dataset.rinSrc = src;
-    script.onload = () => {
-      script.dataset.rinLoaded = "true";
-      resolve();
-    };
-    script.onerror = () => reject(new Error(`Failed to load script: ${src}`));
-    if (!existing) {
-      document.body.appendChild(script);
-    }
-  });
-}
+type PlayerStatus = "idle" | "loading" | "ready" | "error";
 
 async function fetchPlatformTracks(server: string, type: string, id: string) {
   const params = new URLSearchParams({
@@ -54,16 +18,20 @@ async function fetchPlatformTracks(server: string, type: string, id: string) {
   });
   const response = await fetch(`/api/meting/api?${params.toString()}`);
   if (!response.ok) {
-    throw new Error(`Meting API failed (${response.status})`);
+    const message = await response.text().catch(() => "");
+    throw new Error(message || `Meting API failed (${response.status})`);
   }
   const payload = await response.json() as MetingApiTrack[] | MetingApiTrack;
   const list = Array.isArray(payload) ? payload : [payload];
-  return mapMetingTracks(list);
+  const tracks = mapMetingTracks(list);
+  if (tracks.length === 0) {
+    throw new Error("No playable tracks found");
+  }
+  return tracks;
 }
 
 export function GlobalMusicPlayer() {
   const {
-    musicEnabled,
     musicSource,
     musicServer,
     musicType,
@@ -71,13 +39,12 @@ export function GlobalMusicPlayer() {
     musicCustomTracks,
     musicAutoplay,
     themeColor,
-  } = useSiteConfig();
+    shouldRender,
+  } = useMusicPlayerConfig();
   const containerRef = useRef<HTMLDivElement>(null);
-  const playerRef = useRef<{ destroy: () => void } | null>(null);
-  const platformId = musicId.trim();
-  const hasPlatformSource = musicSource === "platform" && platformId.length > 0;
-  const hasCustomSource = musicSource === "custom" && musicCustomTracks.length > 0;
-  const shouldRender = musicEnabled && (hasPlatformSource || hasCustomSource);
+  const playerRef = useRef<InstanceType<typeof APlayer> | null>(null);
+  const [status, setStatus] = useState<PlayerStatus>("idle");
+  const [errorMessage, setErrorMessage] = useState("");
 
   useEffect(() => {
     if (!shouldRender) {
@@ -87,17 +54,18 @@ export function GlobalMusicPlayer() {
       if (containerRef.current) {
         containerRef.current.innerHTML = "";
       }
+      setStatus("idle");
+      setErrorMessage("");
       return undefined;
     }
 
     document.body.classList.add("rin-has-music-player");
     let cancelled = false;
+    setStatus("loading");
+    setErrorMessage("");
 
     async function mountPlayer() {
-      await loadStylesheet(APLAYER_CSS);
-      await loadScript(APLAYER_JS);
-
-      if (cancelled || !containerRef.current) {
+      if (!containerRef.current) {
         return;
       }
 
@@ -107,17 +75,13 @@ export function GlobalMusicPlayer() {
 
       const audio = musicSource === "custom"
         ? mapCustomTracks(musicCustomTracks)
-        : await fetchPlatformTracks(musicServer, musicType, platformId);
+        : await fetchPlatformTracks(musicServer, musicType, musicId);
 
       if (cancelled || !containerRef.current || audio.length === 0) {
         throw new Error("No playable tracks found");
       }
 
-      if (!window.APlayer) {
-        throw new Error("APlayer is unavailable");
-      }
-
-      playerRef.current = new window.APlayer({
+      playerRef.current = new APlayer({
         container: containerRef.current,
         fixed: true,
         mini: false,
@@ -131,10 +95,18 @@ export function GlobalMusicPlayer() {
         mutex: true,
         audio,
       });
+
+      if (!cancelled) {
+        setStatus("ready");
+      }
     }
 
     mountPlayer().catch((error) => {
       console.error("Failed to mount music player:", error);
+      if (!cancelled) {
+        setStatus("error");
+        setErrorMessage(error instanceof Error ? error.message : "Music player failed to load");
+      }
     });
 
     return () => {
@@ -150,10 +122,10 @@ export function GlobalMusicPlayer() {
     shouldRender,
     musicAutoplay,
     musicCustomTracks,
+    musicId,
     musicServer,
     musicSource,
     musicType,
-    platformId,
     themeColor,
   ]);
 
@@ -161,5 +133,17 @@ export function GlobalMusicPlayer() {
     return null;
   }
 
-  return <div ref={containerRef} className="global-music-player" aria-hidden="true" />;
+  return (
+    <div className="global-music-player-root" aria-live="polite">
+      {status === "loading" ? (
+        <div className="global-music-player-status">Loading music player...</div>
+      ) : null}
+      {status === "error" ? (
+        <div className="global-music-player-status global-music-player-status-error">
+          {errorMessage || "Music player failed to load"}
+        </div>
+      ) : null}
+      <div ref={containerRef} className="global-music-player" />
+    </div>
+  );
 }

@@ -37,7 +37,9 @@ export const AI_MODEL_PRESETS: Record<string, string[]> = {
 export function mergeSessionConfig(updates: Record<string, unknown>) {
   const currentConfig = sessionStorage.getItem("config");
   const parsedConfig = currentConfig ? JSON.parse(currentConfig) : {};
-  sessionStorage.setItem("config", JSON.stringify({ ...parsedConfig, ...updates }));
+  const merged = { ...parsedConfig, ...updates };
+  sessionStorage.setItem("config", JSON.stringify(merged));
+  (globalThis as typeof globalThis & { __RIN_CLIENT_CONFIG__?: Record<string, unknown> }).__RIN_CLIENT_CONFIG__ = merged;
 }
 
 export async function loadSettingsConfigState() {
