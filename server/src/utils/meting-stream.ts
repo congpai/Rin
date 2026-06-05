@@ -9,12 +9,7 @@ type MetingUrlResult = {
 
 type MetingInstance = InstanceType<typeof Meting>;
 
-export async function fetchMetingUrlFromProvider(
-  server: string,
-  meting: MetingInstance,
-  id: string,
-) {
-  const response = await meting.url(id);
+async function readMetingUrlResponse(server: string, response: string) {
   try {
     const data = JSON.parse(response) as MetingUrlResult;
     const url = normalizeStreamUrl(server, String(data.url ?? ""));
@@ -22,6 +17,27 @@ export async function fetchMetingUrlFromProvider(
   } catch {
     return "";
   }
+}
+
+export async function fetchMetingUrlFromProvider(
+  server: string,
+  meting: MetingInstance,
+  id: string,
+  options?: { preferHighQuality?: boolean },
+) {
+  const bitrates = options?.preferHighQuality
+    ? [999, 320, 128]
+    : [320, 128];
+
+  for (const bitrate of bitrates) {
+    const response = await meting.url(id, bitrate);
+    const url = await readMetingUrlResponse(server, response);
+    if (url) {
+      return url;
+    }
+  }
+
+  return "";
 }
 
 type MetingUrlPayload = MetingUrlResult | { data?: MetingUrlResult };
@@ -64,13 +80,16 @@ export async function resolveMetingPlayUrl(
   server: string,
   id: string,
   meting: MetingInstance,
+  options?: { allowFallback?: boolean; preferHighQuality?: boolean },
 ) {
-  const directUrl = await fetchMetingUrlFromProvider(server, meting, id);
+  const directUrl = await fetchMetingUrlFromProvider(server, meting, id, {
+    preferHighQuality: options?.preferHighQuality,
+  });
   if (directUrl) {
     return directUrl;
   }
 
-  if (server === "netease") {
+  if (server === "netease" && options?.allowFallback !== false) {
     return fetchInjahowPlayUrl(server, id);
   }
 

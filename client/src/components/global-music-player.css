@@ -42,10 +42,51 @@ body.rin-has-music-player {
   color: #dc2626;
 }
 
-.aplayer.aplayer-fixed {
+/* Official APlayer fixed mode: bottom-left bar, not full-width */
+.global-music-player .aplayer.aplayer-fixed {
   z-index: 1000 !important;
+  right: auto;
+  max-width: 400px;
 }
 
-.aplayer.aplayer-fixed .aplayer-body {
-  max-width: 100%;
+.global-music-player .aplayer.aplayer-fixed .aplayer-body {
+  right: auto;
+  max-width: 400px;
+}
+
+.global-music-player .aplayer.aplayer-fixed .aplayer-list {
+  max-width: 400px;
+}
+
+.global-music-player .aplayer.aplayer-fixed .aplayer-lrc {
+  display: none;
+}
+
+.global-music-player .aplayer * {
+  box-sizing: content-box;
+}
+
+.global-music-player .aplayer .aplayer-info .aplayer-controller {
+  display: flex !important;
+  width: calc(100% - 5px);
+}
+
+.global-music-player .aplayer .aplayer-info .aplayer-controller .aplayer-bar-wrap {
+  display: block !important;
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.global-music-player .aplayer .aplayer-info .aplayer-controller .aplayer-time {
+  flex: 0 0 auto;
+}
+
+.dark .global-music-player .aplayer.aplayer-fixed .aplayer-body,
+:root.dark .global-music-player .aplayer.aplayer-fixed .aplayer-body {
+  background: #18181b;
+}
+
+.dark .global-music-player .aplayer .aplayer-info .aplayer-music .aplayer-author,
+:root.dark .global-music-player .aplayer .aplayer-info .aplayer-music .aplayer-author {
+  color: #a1a1aa;
 }

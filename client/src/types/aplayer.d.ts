@@ -9,8 +9,11 @@ declare module "aplayer" {
       loop?: "all" | "one" | "none";
       order?: "list" | "random";
       preload?: "none" | "metadata" | "auto";
+      volume?: number;
       listFolded?: boolean;
       listMaxHeight?: number | string;
+      lrcType?: number;
+      lrcShow?: boolean;
       mutex?: boolean;
       audio: Array<{
         name: string;

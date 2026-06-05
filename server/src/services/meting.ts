@@ -11,6 +11,7 @@ import {
   resolveUpstreamApiUrl,
   tryResolveMetingUpstreamUrl,
 } from "../utils/meting-helpers";
+import { applyMetingUserCookie } from "../utils/meting-cookie";
 import {
   proxyAudioStream,
   resolveMetingPlayUrl,
@@ -91,7 +92,7 @@ function createMetingInstance(c: AppContext, server: string) {
   if (cookieKey) {
     const cookie = String(serverConfig.get(cookieKey) ?? "").trim();
     if (cookie) {
-      meting.cookie(cookie);
+      applyMetingUserCookie(meting, cookie);
     }
   }
 
@@ -150,11 +151,22 @@ async function buildMetingApiResponse(c: AppContext) {
   }
 
   if (type === "url") {
-    const streamCacheKey = `${server}/stream/${id}`;
+    const cookieKey = server === "netease"
+      ? "meting.cookie_netease"
+      : server === "tencent"
+        ? "meting.cookie_tencent"
+        : "";
+    const userCookie = cookieKey
+      ? String(serverConfig.get(cookieKey) ?? "").trim()
+      : "";
+    const streamCacheKey = `${server}/stream/${id}${userCookie ? "/auth" : ""}`;
     let streamUrl = getCachedValue(streamCacheKey) as string | undefined;
     if (!streamUrl) {
       const meting = createMetingInstance(c, server);
-      streamUrl = await resolveMetingPlayUrl(server, id, meting);
+      streamUrl = await resolveMetingPlayUrl(server, id, meting, {
+        allowFallback: !userCookie,
+        preferHighQuality: Boolean(userCookie),
+      });
       if (streamUrl) {
         setCachedValue(streamCacheKey, streamUrl, 1000 * 60 * 10);
       }
