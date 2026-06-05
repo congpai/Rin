@@ -485,6 +485,16 @@
         "desc": "Set the avatar shown in the navigation bar by URL, upload, or drag and drop",
         "label": "Avatar URL"
       },
+      "avatar_hover": {
+        "title": "Hover Avatar",
+        "desc": "Optional second image shown after the pixel transition on hover. Leave empty to show the site name instead.",
+        "label": "Hover Avatar URL"
+      },
+      "avatar_hover_label": {
+        "title": "Hover Overlay Text",
+        "desc": "Optional text overlay on the hover image, e.g. Meow!",
+        "label": "Overlay Text"
+      },
       "page_size": {
         "title": "Page Size",
         "desc": "Set the number of articles displayed per page in the list",

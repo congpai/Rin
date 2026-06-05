@@ -479,6 +479,16 @@
         "desc": "設定顯示在導覽列的頭像，支援填寫 URL、上傳圖片或拖拽上傳",
         "label": "頭像 URL"
       },
+      "avatar_hover": {
+        "title": "懸停頭像",
+        "desc": "可選的第二張圖，滑鼠懸停時經像素過渡後顯示。留空則顯示網站名稱。",
+        "label": "懸停頭像 URL"
+      },
+      "avatar_hover_label": {
+        "title": "懸停疊加文字",
+        "desc": "可選，顯示在懸停圖上的文字，例如 Meow!",
+        "label": "疊加文字"
+      },
       "page_size": {
         "title": "分頁大小",
         "desc": "設定文章列表每頁顯示的數量",

@@ -217,6 +217,27 @@ export function Settings() {
             }}
             onError={showAlert}
           />
+          <ItemImageInput
+            title={t("settings.site.avatar_hover.title")}
+            description={t("settings.site.avatar_hover.desc")}
+            configKeyTitle={t("settings.site.avatar_hover.label")}
+            value={String(clientConfig.get("site.avatar_hover") ?? "")}
+            placeholder={String(clientConfig.default("site.avatar_hover") ?? t("settings.site.avatar_hover.label"))}
+            onChange={(value) => {
+              setConfigValue("client", "site.avatar_hover", value);
+            }}
+            onError={showAlert}
+          />
+          <ItemInput
+            title={t("settings.site.avatar_hover_label.title")}
+            description={t("settings.site.avatar_hover_label.desc")}
+            configKeyTitle={t("settings.site.avatar_hover_label.label")}
+            value={String(clientConfig.get("site.avatar_hover_label") ?? "")}
+            placeholder={String(clientConfig.default("site.avatar_hover_label") ?? t("settings.site.avatar_hover_label.label"))}
+            onChange={(value) => {
+              setConfigValue("client", "site.avatar_hover_label", value);
+            }}
+          />
           <ItemInput
             title={t("settings.site.page_size.title")}
             description={t("settings.site.page_size.desc")}

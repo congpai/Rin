@@ -35,6 +35,8 @@ export function BrandLink({
 }) {
   const resolvedAvatarSizePx = avatarSizePx ?? (compact ? 48 : 100);
   const avatarSrc = siteConfig.avatar?.trim() || "";
+  const avatarHoverSrc = siteConfig.avatarHover?.trim() || "";
+  const avatarHoverLabel = siteConfig.avatarHoverLabel?.trim() || "";
   const resolvedAvatarClassName = avatarClassName || (
     compact
       ? "rounded-full border-2 border-white/80 dark:border-white/20"
@@ -63,7 +65,22 @@ export function BrandLink({
               </span>
             </div>
           )}
-          secondContent={(
+          secondContent={avatarHoverSrc ? (
+            <div className="relative h-full w-full">
+              <img
+                src={avatarHoverSrc}
+                alt=""
+                className="h-full w-full object-cover"
+              />
+              {avatarHoverLabel ? (
+                <div className="absolute inset-0 grid place-items-center bg-black/25 p-1 text-center text-white">
+                  <p className={avatarLabelClassName(resolvedAvatarSizePx)}>
+                    {avatarHoverLabel}
+                  </p>
+                </div>
+              ) : null}
+            </div>
+          ) : (
             <div className="grid h-full w-full place-items-center bg-theme p-1 text-center text-white">
               <p className={avatarLabelClassName(resolvedAvatarSizePx)}>
                 {siteConfig.name}
