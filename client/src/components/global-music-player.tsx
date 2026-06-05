@@ -6,6 +6,7 @@ import {
   mapMetingTracks,
   type MetingApiTrack,
 } from "../utils/music-config";
+import { readApiErrorMessage } from "../utils/music-api";
 import "aplayer/dist/APlayer.min.css";
 
 type PlayerStatus = "idle" | "loading" | "ready" | "error";
@@ -18,8 +19,7 @@ async function fetchPlatformTracks(server: string, type: string, id: string) {
   });
   const response = await fetch(`/api/meting/api?${params.toString()}`);
   if (!response.ok) {
-    const message = await response.text().catch(() => "");
-    throw new Error(message || `Meting API failed (${response.status})`);
+    throw new Error(await readApiErrorMessage(response));
   }
   const payload = await response.json() as MetingApiTrack[] | MetingApiTrack;
   const list = Array.isArray(payload) ? payload : [payload];

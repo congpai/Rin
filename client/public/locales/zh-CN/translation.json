@@ -393,7 +393,7 @@
       },
       "id": {
         "title": "歌单 / 单曲 ID",
-        "desc": "歌单选 playlist + 歌单 ID；单曲选 song + 歌曲 ID。网易云分享链接里的数字即可",
+        "desc": "歌单选 playlist + 歌单 ID；单曲选 song + 歌曲 ID。可直接粘贴分享链接，系统会自动提取 ID",
         "label": "资源 ID"
       },
       "autoplay": {

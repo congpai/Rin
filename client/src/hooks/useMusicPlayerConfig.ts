@@ -4,6 +4,7 @@ import {
   normalizeMusicSource,
   parseCustomMusicTracks,
 } from "../utils/music-config";
+import { normalizeMusicResourceId } from "../utils/music-api";
 import { MUSIC_SERVERS, MUSIC_TYPES } from "./useSiteConfig";
 
 function parseBoolean(value: unknown, fallback = false) {
@@ -90,7 +91,7 @@ export function useMusicPlayerConfig() {
   const musicType = MUSIC_TYPES.includes(musicTypeRaw as typeof MUSIC_TYPES[number])
     ? musicTypeRaw as typeof MUSIC_TYPES[number]
     : "playlist";
-  const musicId = String(readConfigValue(mergedConfig, "music.id") ?? "");
+  const musicId = normalizeMusicResourceId(String(readConfigValue(mergedConfig, "music.id") ?? ""));
   const musicCustomTracks = useMemo(
     () => parseCustomMusicTracks(readConfigValue(mergedConfig, "music.custom_tracks")),
     [mergedConfig],
