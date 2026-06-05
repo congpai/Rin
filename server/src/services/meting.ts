@@ -1,3 +1,4 @@
+import "../utils/meting-crypto-shim";
 import Meting from "@meting/core";
 import { Hono } from "hono";
 import type { AppContext } from "../core/hono-types";
