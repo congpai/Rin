@@ -57,20 +57,107 @@ export function resolveMetingBaseUrl(c: AppContext) {
   }
 }
 
-export function resolveOptionalHttpUrl(rawValue: string, label: string) {
-  const value = rawValue.trim();
+export function resolveRequestOrigin(c: AppContext) {
+  const forwardedHost = c.req.header("x-forwarded-host")?.split(",")[0]?.trim();
+  const host = forwardedHost || c.req.header("host")?.trim();
+  const forwardedProto = c.req.header("x-forwarded-proto")?.split(",")[0]?.trim();
+
+  try {
+    const requestUrl = new URL(c.req.url);
+    const protocol = forwardedProto || requestUrl.protocol.replace(":", "") || "https";
+    const hostname = host || requestUrl.host;
+    if (!hostname) {
+      throw new Error("Missing host");
+    }
+    return `${protocol}://${hostname}`;
+  } catch {
+    if (host) {
+      const protocol = forwardedProto || "https";
+      return `${protocol}://${host}`;
+    }
+    throw new Error("Unable to resolve request origin");
+  }
+}
+
+function isBuiltInMetingPath(pathname: string) {
+  const path = pathname.replace(/\/$/, "") || "/";
+  return path === "/api/meting" || path.startsWith("/api/meting/");
+}
+
+export function normalizeMetingUpstreamUrl(rawValue: string, c?: AppContext) {
+  let value = rawValue.trim().replace(/\r?\n/g, "");
   if (!value) {
     return "";
   }
-  try {
-    const parsed = new URL(value);
-    if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
-      throw new Error(`${label} must use http or https`);
+
+  if (value.startsWith("/")) {
+    if (isBuiltInMetingPath(value)) {
+      return "";
     }
-    return parsed.toString().replace(/\/$/, "");
-  } catch {
-    throw new Error(`${label} is invalid`);
+    if (!c) {
+      throw new Error("Meting upstream URL is invalid");
+    }
+    value = `${resolveRequestOrigin(c)}${value}`;
   }
+
+  if (value.startsWith("//")) {
+    value = `https:${value}`;
+  } else if (!/^[a-z][a-z0-9+.-]*:/i.test(value)) {
+    value = `https://${value}`;
+  }
+
+  let parsed: URL;
+  try {
+    parsed = new URL(value);
+  } catch {
+    throw new Error("Meting upstream URL is invalid");
+  }
+
+  if (parsed.protocol !== "http:" && parsed.protocol !== "https:") {
+    throw new Error("Meting upstream URL must use http or https");
+  }
+
+  parsed.search = "";
+  parsed.hash = "";
+
+  let pathname = parsed.pathname.replace(/\/$/, "");
+  if (pathname.endsWith("/api/meting/api")) {
+    pathname = pathname.slice(0, -4);
+  }
+
+  const normalized = `${parsed.origin}${pathname}`;
+
+  if (c) {
+    try {
+      const builtInBase = resolveMetingBaseUrl(c);
+      const builtInUrl = new URL(builtInBase);
+      const upstreamUrl = new URL(normalized);
+      if (
+        builtInUrl.origin === upstreamUrl.origin
+        && isBuiltInMetingPath(upstreamUrl.pathname)
+      ) {
+        return "";
+      }
+    } catch {
+      // fall through
+    }
+  }
+
+  return normalized;
+}
+
+export function resolveUpstreamApiUrl(upstreamBase: string) {
+  const base = upstreamBase.replace(/\/$/, "");
+  if (base.endsWith("/api/meting")) {
+    return `${base}/api`;
+  }
+  if (base.endsWith("/api")) {
+    return base;
+  }
+  if (/\/meting$/i.test(base)) {
+    return base;
+  }
+  return `${base}/api`;
 }
 
 export function normalizeStreamUrl(server: string, rawUrl: string) {

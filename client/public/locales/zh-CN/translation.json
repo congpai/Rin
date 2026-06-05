@@ -402,7 +402,7 @@
       },
       "upstream": {
         "title": "外部 Meting API",
-        "desc": "留空则使用博客内置 Meting API（/api/meting）。若自建独立 Meting 服务，可填其根地址"
+        "desc": "留空则使用博客内置 API，只需填写下方 Token。使用第三方服务时填完整根地址（须含 https://），如 https://api.injahow.cn/meting 。勿填本站 /api/meting"
       },
       "token": {
         "title": "Meting 鉴权 Token",

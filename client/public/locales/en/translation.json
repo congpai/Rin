@@ -402,7 +402,7 @@
       },
       "upstream": {
         "title": "External Meting API",
-        "desc": "Leave empty to use built-in /api/meting. Set a custom Meting API base URL if self-hosted elsewhere"
+        "desc": "Leave empty to use the built-in API (only set Token below). For third-party services, use a full base URL with https://, e.g. https://api.injahow.cn/meting. Do not use this site's /api/meting"
       },
       "token": {
         "title": "Meting auth token",

@@ -634,7 +634,7 @@ export function Settings() {
             description={t("settings.music.upstream.desc")}
             configKeyTitle="meting.upstream_url"
             value={String(serverConfig.get("meting.upstream_url") ?? "")}
-            placeholder="https://your-meting-api.example.com"
+            placeholder="https://api.injahow.cn/meting"
             onChange={(value) => {
               setConfigValue("server", "meting.upstream_url", value);
             }}
