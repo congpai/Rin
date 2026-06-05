@@ -27,6 +27,7 @@
     "typescript": "^5.0.0"
   },
   "dependencies": {
+    "@meting/core": "^1.6.1",
     "@rin/api": "workspace:*",
     "@rin/config": "workspace:*",
     "arctic": "^3.7.0",

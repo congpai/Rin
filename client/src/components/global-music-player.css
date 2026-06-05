@@ -1,0 +1,9 @@
+body.rin-has-music-player {
+  padding-bottom: 66px;
+}
+
+@media (max-width: 768px) {
+  body.rin-has-music-player {
+    padding-bottom: 56px;
+  }
+}

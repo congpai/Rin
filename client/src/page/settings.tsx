@@ -17,7 +17,7 @@ import {
 import { FEED_CARD_VARIANTS, normalizeFeedCardVariant } from "../components/feed-card-options";
 import { FeedCardPreview } from "../components/feed-card-preview";
 import { FEED_LAYOUT_OPTIONS, normalizeFeedLayout } from "../components/feed-layout-options";
-import { useSiteConfig } from "../hooks/useSiteConfig";
+import { MUSIC_SERVERS, MUSIC_TYPES, useSiteConfig } from "../hooks/useSiteConfig";
 import { applyThemeColor, normalizeThemeColor } from "../utils/theme-color";
 import { AISummarySettings } from "./settings-ai";
 import { ItemButton, ItemImageInput, ItemInput, ItemSwitch, ItemTitle, ItemWithUpload } from "./settings-items";
@@ -509,6 +509,124 @@ export function Settings() {
             value={String(clientConfig.get("footer") ?? "")}
             onChange={(value) => {
               setConfigValue("client", "footer", value);
+            }}
+          />
+
+          <ItemTitle title={t("settings.music.title")} />
+          <ItemSwitch
+            title={t("settings.music.enabled.title")}
+            description={t("settings.music.enabled.desc")}
+            checked={clientConfig.getBoolean("music.enabled")}
+            onChange={(checked) => {
+              setConfigValue("client", "music.enabled", checked);
+            }}
+          />
+          <div className="w-full">
+            <SettingsCard>
+              <SettingsCardRow
+                header={
+                  <SettingsCardHeader
+                    title={t("settings.music.server.title")}
+                    description={t("settings.music.server.desc")}
+                  />
+                }
+                action={
+                  <SearchableSelect
+                    value={String(clientConfig.get("music.server") ?? "netease")}
+                    onChange={(value) => {
+                      setConfigValue("client", "music.server", value);
+                    }}
+                    options={MUSIC_SERVERS.map((value) => ({
+                      label: t(`settings.music.server.options.${value}`),
+                      value,
+                    }))}
+                    placeholder={t("settings.music.server.title")}
+                  />
+                }
+              />
+            </SettingsCard>
+          </div>
+          <div className="w-full">
+            <SettingsCard>
+              <SettingsCardRow
+                header={
+                  <SettingsCardHeader
+                    title={t("settings.music.type.title")}
+                    description={t("settings.music.type.desc")}
+                  />
+                }
+                action={
+                  <SearchableSelect
+                    value={String(clientConfig.get("music.type") ?? "playlist")}
+                    onChange={(value) => {
+                      setConfigValue("client", "music.type", value);
+                    }}
+                    options={MUSIC_TYPES.map((value) => ({
+                      label: t(`settings.music.type.options.${value}`),
+                      value,
+                    }))}
+                    placeholder={t("settings.music.type.title")}
+                  />
+                }
+              />
+            </SettingsCard>
+          </div>
+          <ItemInput
+            title={t("settings.music.id.title")}
+            description={t("settings.music.id.desc")}
+            configKeyTitle={t("settings.music.id.label")}
+            value={String(clientConfig.get("music.id") ?? "")}
+            placeholder={t("settings.music.id.label")}
+            onChange={(value) => {
+              setConfigValue("client", "music.id", value);
+            }}
+          />
+          <ItemSwitch
+            title={t("settings.music.autoplay.title")}
+            description={t("settings.music.autoplay.desc")}
+            checked={clientConfig.getBoolean("music.autoplay")}
+            onChange={(checked) => {
+              setConfigValue("client", "music.autoplay", checked);
+            }}
+          />
+          <ItemInput
+            title={t("settings.music.upstream.title")}
+            description={t("settings.music.upstream.desc")}
+            configKeyTitle="meting.upstream_url"
+            value={String(serverConfig.get("meting.upstream_url") ?? "")}
+            placeholder="https://your-meting-api.example.com"
+            onChange={(value) => {
+              setConfigValue("server", "meting.upstream_url", value);
+            }}
+          />
+          <ItemInput
+            title={t("settings.music.token.title")}
+            description={t("settings.music.token.desc")}
+            configKeyTitle="meting.token"
+            value={String(serverConfig.get("meting.token") ?? "")}
+            placeholder="token"
+            onChange={(value) => {
+              setConfigValue("server", "meting.token", value);
+            }}
+          />
+          <ItemInput
+            title={t("settings.music.cookie_netease.title")}
+            description={t("settings.music.cookie_netease.desc")}
+            configKeyTitle="meting.cookie_netease"
+            value={String(serverConfig.get("meting.cookie_netease") ?? "")}
+            placeholder={t("settings.music.cookie_netease.label")}
+            onChange={(value) => {
+              setConfigValue("server", "meting.cookie_netease", value);
+            }}
+          />
+          <ItemInput
+            title={t("settings.music.cookie_tencent.title")}
+            description={t("settings.music.cookie_tencent.desc")}
+            configKeyTitle="meting.cookie_tencent"
+            value={String(serverConfig.get("meting.cookie_tencent") ?? "")}
+            placeholder={t("settings.music.cookie_tencent.label")}
+            onChange={(value) => {
+              setConfigValue("server", "meting.cookie_tencent", value);
             }}
           />
 

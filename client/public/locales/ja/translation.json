@@ -341,6 +341,61 @@
       "desc": "サイトのフッターコンテンツを設定する（HTML）",
       "title": "フッター"
     },
+    "music": {
+      "title": "ミュージックプレイヤー",
+      "enabled": {
+        "title": "固定プレイヤーを有効化",
+        "desc": "ページ下部に APlayer を表示。NetEase と QQ ミュージックのプレイリストに対応"
+      },
+      "server": {
+        "title": "音楽プラットフォーム",
+        "desc": "プレイリストの取得元を選択",
+        "options": {
+          "netease": "NetEase Cloud Music",
+          "tencent": "QQ Music",
+          "kugou": "KuGou",
+          "baidu": "Baidu Music",
+          "kuwo": "Kuwo"
+        }
+      },
+      "type": {
+        "title": "リソースタイプ",
+        "desc": "通常はプレイリスト（playlist）",
+        "options": {
+          "playlist": "プレイリスト",
+          "song": "曲",
+          "album": "アルバム",
+          "artist": "アーティスト"
+        }
+      },
+      "id": {
+        "title": "プレイリスト / リソース ID",
+        "desc": "各プラットフォームの ID。NetEase は共有リンクの数字、QQ Music はプレイリスト ID",
+        "label": "リソース ID"
+      },
+      "autoplay": {
+        "title": "自動再生",
+        "desc": "ページ読み込み後に自動再生（ブラウザによってブロックされる場合あり）"
+      },
+      "upstream": {
+        "title": "外部 Meting API",
+        "desc": "空欄の場合は組み込み /api/meting を使用。別途 Meting API を運用する場合はベース URL を入力"
+      },
+      "token": {
+        "title": "Meting 認証トークン",
+        "desc": "url/pic/lrc エンドポイント保護用。デフォルト: token"
+      },
+      "cookie_netease": {
+        "title": "NetEase Cookie",
+        "desc": "任意。VIP 曲やグレー曲の解除に使用",
+        "label": "NetEase Cookie"
+      },
+      "cookie_tencent": {
+        "title": "QQ Music Cookie",
+        "desc": "任意。Tencent 解析用。海外からのアクセスでは推奨",
+        "label": "Tencent Cookie"
+      }
+    },
     "webhook": {
       "title": "Webhook",
       "url": {

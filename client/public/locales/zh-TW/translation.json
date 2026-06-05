@@ -350,6 +350,61 @@
       "desc": "設定顯示於網站底部的內容（HTML）",
       "title": "網站底部內容"
     },
+    "music": {
+      "title": "音樂播放器",
+      "enabled": {
+        "title": "啟用吸底播放器",
+        "desc": "在頁面底部顯示 APlayer 音樂播放器，支援網易雲與 QQ 音樂歌單"
+      },
+      "server": {
+        "title": "音樂平台",
+        "desc": "選擇歌單來源平台",
+        "options": {
+          "netease": "網易雲音樂",
+          "tencent": "QQ 音樂",
+          "kugou": "酷狗音樂",
+          "baidu": "百度音樂",
+          "kuwo": "酷我音樂"
+        }
+      },
+      "type": {
+        "title": "資源類型",
+        "desc": "通常為歌單（playlist）",
+        "options": {
+          "playlist": "歌單",
+          "song": "單曲",
+          "album": "專輯",
+          "artist": "歌手"
+        }
+      },
+      "id": {
+        "title": "歌單 / 資源 ID",
+        "desc": "填寫對應平台的歌單 ID。網易雲分享連結中的數字，QQ 音樂為歌單 ID",
+        "label": "資源 ID"
+      },
+      "autoplay": {
+        "title": "自動播放",
+        "desc": "頁面載入後自動開始播放（部分瀏覽器可能攔截）"
+      },
+      "upstream": {
+        "title": "外部 Meting API",
+        "desc": "留空則使用部落格內建 Meting API（/api/meting）。若自建獨立 Meting 服務，可填其根地址"
+      },
+      "token": {
+        "title": "Meting 鑑權 Token",
+        "desc": "用於保護 url/pic/lrc 介面，需與 Meting API 設定一致，預設 token"
+      },
+      "cookie_netease": {
+        "title": "網易雲 Cookie",
+        "desc": "可選，用於解鎖 VIP 或灰曲。留空使用預設",
+        "label": "Netease Cookie"
+      },
+      "cookie_tencent": {
+        "title": "QQ 音樂 Cookie",
+        "desc": "可選，用於 QQ 音樂解析。海外存取建議設定",
+        "label": "Tencent Cookie"
+      }
+    },
     "webhook": {
       "title": "Webhook",
       "url": {
