@@ -13,7 +13,6 @@ import {
 } from "../utils/meting-helpers";
 import { applyMetingUserCookie } from "../utils/meting-cookie";
 import {
-  proxyAudioStream,
   resolveMetingPlayUrl,
 } from "../utils/meting-stream";
 
@@ -177,12 +176,7 @@ async function buildMetingApiResponse(c: AppContext) {
       }, 404);
     }
 
-    const range = c.req.header("range") ?? c.req.header("Range");
-    const proxied = await proxyAudioStream(server, streamUrl, range, userCookie);
-    if (!proxied.ok) {
-      return new Response(null, { status: proxied.status });
-    }
-    return proxied;
+    return c.redirect(streamUrl, 302);
   }
 
   const cacheKey = `${server}/${type}/${id}`;

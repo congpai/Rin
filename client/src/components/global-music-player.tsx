@@ -73,9 +73,16 @@ export function GlobalMusicPlayer() {
       playerRef.current = null;
       containerRef.current.innerHTML = "";
 
-      const audio = musicSource === "custom"
+      const rawAudio = musicSource === "custom"
         ? mapCustomTracks(musicCustomTracks)
         : await fetchPlatformTracks(musicServer, musicType, musicId);
+
+      const audio = rawAudio.map(({ name, artist, url, cover }) => ({
+        name,
+        artist,
+        url,
+        cover,
+      }));
 
       if (cancelled || !containerRef.current || audio.length === 0) {
         throw new Error("No playable tracks found");
@@ -93,8 +100,6 @@ export function GlobalMusicPlayer() {
         volume: 0.7,
         listFolded: true,
         listMaxHeight: 90,
-        lrcType: 3,
-        lrcShow: false,
         mutex: true,
         audio,
       });

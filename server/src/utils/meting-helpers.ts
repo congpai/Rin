@@ -190,20 +190,10 @@ export function normalizeStreamUrl(server: string, rawUrl: string) {
 
   let normalized = url;
   if (server === "netease") {
-    normalized = url
+    return url
       .replace("://m7c.", "://m7.")
       .replace("://m8c.", "://m8.")
       .replace("http://", "https://");
-    if (normalized.includes("vuutv=")) {
-      try {
-        const tempUrl = new URL(normalized);
-        tempUrl.search = "";
-        normalized = tempUrl.toString();
-      } catch {
-        return normalized;
-      }
-    }
-    return normalized;
   }
   if (server === "tencent") {
     return url

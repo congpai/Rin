@@ -6,17 +6,28 @@ const INJAHOW_METING_BASE = "https://api.injahow.cn/meting";
 
 type MetingUrlResult = {
   url?: string;
+  size?: number;
+  br?: number;
 };
 
 type MetingInstance = InstanceType<typeof Meting>;
+
+const PREVIEW_SIZE_BYTES = 700_000;
 
 async function readMetingUrlResponse(server: string, response: string) {
   try {
     const data = JSON.parse(response) as MetingUrlResult;
     const url = normalizeStreamUrl(server, String(data.url ?? ""));
-    return isHttpUrl(url) ? url : "";
+    if (!isHttpUrl(url)) {
+      return null;
+    }
+    return {
+      url,
+      size: Number(data.size ?? 0),
+      br: Number(data.br ?? 0),
+    };
   } catch {
-    return "";
+    return null;
   }
 }
 
@@ -30,12 +41,26 @@ export async function fetchMetingUrlFromProvider(
     ? [999, 320, 128]
     : [320, 128];
 
+  let bestCandidate: { url: string; size: number; br: number } | null = null;
+
   for (const bitrate of bitrates) {
     const response = await meting.url(id, bitrate);
-    const url = await readMetingUrlResponse(server, response);
-    if (url) {
-      return url;
+    const candidate = await readMetingUrlResponse(server, response);
+    if (!candidate) {
+      continue;
     }
+
+    if (!bestCandidate || candidate.size > bestCandidate.size) {
+      bestCandidate = candidate;
+    }
+
+    if (options?.preferHighQuality && candidate.size >= PREVIEW_SIZE_BYTES) {
+      return candidate.url;
+    }
+  }
+
+  if (bestCandidate && (!options?.preferHighQuality || bestCandidate.size > 0)) {
+    return bestCandidate.url;
   }
 
   return "";
