@@ -13,6 +13,13 @@ import {
 } from "../utils/meting-helpers";
 import { applyMetingUserCookie } from "../utils/meting-cookie";
 import {
+  fetchInjahowLyric,
+  fetchInjahowMetingList,
+  fetchInjahowRedirectUrl,
+  mapInjahowTracksToApiResponse,
+  shouldUseInjahowFallback,
+} from "../utils/meting-injahow";
+import {
   resolveMetingPlayUrl,
 } from "../utils/meting-stream";
 
@@ -91,7 +98,7 @@ function createMetingInstance(c: AppContext, server: string) {
   if (cookieKey) {
     const cookie = String(serverConfig.get(cookieKey) ?? "").trim();
     if (cookie) {
-      applyMetingUserCookie(meting, cookie);
+      applyMetingUserCookie(meting, cookie, server);
     }
   }
 
@@ -172,7 +179,9 @@ async function buildMetingApiResponse(c: AppContext) {
 
     if (!streamUrl || !isHttpUrl(streamUrl)) {
       return c.json({
-        message: "无法获取播放地址，请检查网易云 Cookie 是否有效，或稍后重试",
+        message: server === "tencent"
+          ? "无法获取 QQ 音乐播放地址，请检查歌单/歌曲 ID 或 Cookie"
+          : "无法获取播放地址，请检查 Cookie 是否有效，或稍后重试",
       }, 404);
     }
 
@@ -181,22 +190,44 @@ async function buildMetingApiResponse(c: AppContext) {
 
   const cacheKey = `${server}/${type}/${id}`;
   let data = getCachedValue(cacheKey);
+  if (Array.isArray(data) && data.length === 0 && shouldUseInjahowFallback(server)) {
+    data = undefined;
+  }
   if (data === undefined) {
     const meting = createMetingInstance(c, server);
 
     const method = METING_METHODS[type as keyof typeof METING_METHODS];
-    let response: string;
+    let response = "";
     try {
       response = await meting[method](id);
     } catch (error) {
-      const message = error instanceof Error ? error.message : "上游 API 调用失败";
-      return c.json({ message }, 500);
+      if (!shouldUseInjahowFallback(server)) {
+        const message = error instanceof Error ? error.message : "上游 API 调用失败";
+        return c.json({ message }, 500);
+      }
+      response = "[]";
     }
 
     try {
       data = JSON.parse(response);
     } catch {
-      return c.json({ message: "上游 API 返回格式异常" }, 500);
+      if (shouldUseInjahowFallback(server)) {
+        data = [];
+      } else {
+        return c.json({ message: "上游 API 返回格式异常" }, 500);
+      }
+    }
+
+    if (shouldUseInjahowFallback(server) && Array.isArray(data) && data.length === 0) {
+      const injahowTracks = await fetchInjahowMetingList(server, type, id);
+      if (injahowTracks) {
+        return c.json(await mapInjahowTracksToApiResponse(c, server, injahowTracks, metingToken));
+      }
+      return c.json({
+        message: server === "tencent"
+          ? "QQ 音乐歌单/歌曲解析失败，请确认 ID 或粘贴 QQ 音乐分享链接"
+          : "无法解析该平台歌单或歌曲",
+      }, 404);
     }
 
     setCachedValue(
@@ -207,7 +238,10 @@ async function buildMetingApiResponse(c: AppContext) {
   }
 
   if (type === "pic") {
-    const url = String((data as MetingUrlResult).url ?? "").trim();
+    let url = String((data as MetingUrlResult).url ?? "").trim();
+    if (!isHttpUrl(url) && shouldUseInjahowFallback(server)) {
+      url = String(await fetchInjahowRedirectUrl(server, "pic", id) ?? "").trim();
+    }
     if (!isHttpUrl(url)) {
       return c.body(null, 404);
     }
@@ -216,7 +250,12 @@ async function buildMetingApiResponse(c: AppContext) {
 
   if (type === "lrc") {
     const lyricData = data as MetingLyricResult;
-    return c.text(formatMetingLyric(lyricData.lyric ?? "", lyricData.tlyric ?? ""), 200, {
+    let lyric = lyricData.lyric ?? "";
+    let tlyric = lyricData.tlyric ?? "";
+    if (!lyric && shouldUseInjahowFallback(server)) {
+      lyric = await fetchInjahowLyric(server, id);
+    }
+    return c.text(formatMetingLyric(lyric, tlyric), 200, {
       "Content-Type": "text/plain; charset=utf-8",
     });
   }

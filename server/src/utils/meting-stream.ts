@@ -115,11 +115,7 @@ export async function resolveMetingPlayUrl(
     return directUrl;
   }
 
-  if (server === "netease") {
-    return fetchInjahowPlayUrl(server, id);
-  }
-
-  return "";
+  return fetchInjahowPlayUrl(server, id);
 }
 
 export function buildStreamReferer(server: string) {

@@ -393,7 +393,7 @@
       },
       "id": {
         "title": "Playlist / song ID",
-        "desc": "Use playlist + ID for playlists, or song + ID for a single track",
+        "desc": "NetEase: numeric ID. QQ Music songs: songmid (e.g. 001sTnpM1Kw5aa); playlists: numeric ID. Paste share links to auto-extract",
         "label": "Resource ID"
       },
       "autoplay": {

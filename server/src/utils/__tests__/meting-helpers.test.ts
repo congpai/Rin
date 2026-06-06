@@ -1,9 +1,35 @@
 import { describe, expect, it } from "bun:test";
 import {
+  normalizeMetingResourceId,
   normalizeMetingUpstreamUrl,
   resolveUpstreamApiUrl,
   tryResolveMetingUpstreamUrl,
 } from "../meting-helpers";
+
+describe("normalizeMetingResourceId", () => {
+  it("extracts songmid from QQ Music share links", () => {
+    expect(normalizeMetingResourceId("https://y.qq.com/n/ryqq/song/001sTnpM1Kw5aa")).toBe(
+      "001sTnpM1Kw5aa",
+    );
+    expect(normalizeMetingResourceId("https://i.y.qq.com/v8/playsong.html?songmid=001sTnpM1Kw5aa")).toBe(
+      "001sTnpM1Kw5aa",
+    );
+  });
+
+  it("extracts disstid and playlist path IDs", () => {
+    expect(normalizeMetingResourceId("https://y.qq.com/n/ryqq/playlist/7266465760")).toBe(
+      "7266465760",
+    );
+    expect(normalizeMetingResourceId("https://y.qq.com/n/ryqq/playlist?disstid=7266465760")).toBe(
+      "7266465760",
+    );
+  });
+
+  it("returns raw id when no pattern matches", () => {
+    expect(normalizeMetingResourceId("7266465760")).toBe("7266465760");
+    expect(normalizeMetingResourceId("001sTnpM1Kw5aa")).toBe("001sTnpM1Kw5aa");
+  });
+});
 
 describe("normalizeMetingUpstreamUrl", () => {
   it("returns empty for blank values", () => {

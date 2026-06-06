@@ -25,30 +25,50 @@ function upsertCookiePart(cookie: string, part: string) {
 }
 
 export function mergeNeteaseCookies(baseCookie: string, userCookie: string) {
+  return mergeProviderCookies(baseCookie, userCookie, "MUSIC_U");
+}
+
+export function mergeProviderCookies(
+  baseCookie: string,
+  userCookie: string,
+  defaultKey?: string,
+) {
   const base = baseCookie.trim();
   const user = userCookie.trim();
   if (!user) {
     return base;
   }
 
-  let merged = base;
   const parts = user.includes("=")
     ? parseCookieParts(user)
-    : [`MUSIC_U=${user}`];
+    : defaultKey
+      ? [`${defaultKey}=${user}`]
+      : [user];
 
+  let merged = base;
   for (const part of parts) {
-    merged = upsertCookiePart(merged, part);
+    const normalized = part.includes("=") ? part : `${defaultKey ?? "cookie"}=${part}`;
+    merged = upsertCookiePart(merged, normalized);
   }
 
   return merged;
 }
 
-export function applyMetingUserCookie(meting: MetingWithHeader, userCookie: string) {
+export function applyMetingUserCookie(
+  meting: MetingWithHeader,
+  userCookie: string,
+  server?: string,
+) {
   const cookie = userCookie.trim();
   if (!cookie) {
     return;
   }
 
   const baseCookie = meting.header?.Cookie ?? "";
-  meting.cookie(mergeNeteaseCookies(baseCookie, cookie));
+  if (server === "netease") {
+    meting.cookie(mergeProviderCookies(baseCookie, cookie, "MUSIC_U"));
+    return;
+  }
+
+  meting.cookie(mergeProviderCookies(baseCookie, cookie));
 }
