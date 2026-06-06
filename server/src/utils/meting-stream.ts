@@ -1,4 +1,5 @@
 import type Meting from "@meting/core";
+import { mergeNeteaseCookies } from "./meting-cookie";
 import { isHttpUrl, normalizeStreamUrl } from "./meting-helpers";
 
 const INJAHOW_METING_BASE = "https://api.injahow.cn/meting";
@@ -80,7 +81,7 @@ export async function resolveMetingPlayUrl(
   server: string,
   id: string,
   meting: MetingInstance,
-  options?: { allowFallback?: boolean; preferHighQuality?: boolean },
+  options?: { preferHighQuality?: boolean },
 ) {
   const directUrl = await fetchMetingUrlFromProvider(server, meting, id, {
     preferHighQuality: options?.preferHighQuality,
@@ -89,7 +90,7 @@ export async function resolveMetingPlayUrl(
     return directUrl;
   }
 
-  if (server === "netease" && options?.allowFallback !== false) {
+  if (server === "netease") {
     return fetchInjahowPlayUrl(server, id);
   }
 
@@ -117,6 +118,7 @@ export async function proxyAudioStream(
   server: string,
   streamUrl: string,
   rangeHeader?: string | null,
+  userCookie?: string,
 ) {
   const headers: Record<string, string> = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
@@ -124,6 +126,9 @@ export async function proxyAudioStream(
   const referer = buildStreamReferer(server);
   if (referer) {
     headers.Referer = referer;
+  }
+  if (server === "netease" && userCookie?.trim()) {
+    headers.Cookie = mergeNeteaseCookies("", userCookie.trim());
   }
   if (rangeHeader) {
     headers.Range = rangeHeader;

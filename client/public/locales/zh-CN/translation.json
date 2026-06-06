@@ -410,7 +410,7 @@
       },
       "cookie_netease": {
         "title": "网易云 Cookie",
-        "desc": "用于 VIP / 灰曲。填 MUSIC_U=xxx 或只填 MUSIC_U 的值，保存后刷新。填了 Cookie 后不会走第三方备用解析",
+        "desc": "用于 VIP / 灰曲。填 MUSIC_U=xxx 或只填 MUSIC_U 的值。内置解析失败时会自动尝试备用源",
         "label": "Netease Cookie"
       },
       "cookie_tencent": {

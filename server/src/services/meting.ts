@@ -164,7 +164,6 @@ async function buildMetingApiResponse(c: AppContext) {
     if (!streamUrl) {
       const meting = createMetingInstance(c, server);
       streamUrl = await resolveMetingPlayUrl(server, id, meting, {
-        allowFallback: !userCookie,
         preferHighQuality: Boolean(userCookie),
       });
       if (streamUrl) {
@@ -174,12 +173,12 @@ async function buildMetingApiResponse(c: AppContext) {
 
     if (!streamUrl || !isHttpUrl(streamUrl)) {
       return c.json({
-        message: "无法获取播放地址，请在设置中填写网易云 Cookie 或稍后重试",
+        message: "无法获取播放地址，请检查网易云 Cookie 是否有效，或稍后重试",
       }, 404);
     }
 
     const range = c.req.header("range") ?? c.req.header("Range");
-    const proxied = await proxyAudioStream(server, streamUrl, range);
+    const proxied = await proxyAudioStream(server, streamUrl, range, userCookie);
     if (!proxied.ok) {
       return new Response(null, { status: proxied.status });
     }
