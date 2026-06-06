@@ -14,6 +14,11 @@ export function normalizeMusicResourceId(rawId: string) {
     return decodeURIComponent(songMidMatch[1]).trim();
   }
 
+  const songIdMatch = id.match(/[?&#]songid=([^&#]+)/i);
+  if (songIdMatch?.[1]) {
+    return decodeURIComponent(songIdMatch[1]).trim();
+  }
+
   const disstidMatch = id.match(/[?&#]disstid=([^&#]+)/i);
   if (disstidMatch?.[1]) {
     return decodeURIComponent(disstidMatch[1]).trim();
@@ -24,14 +29,24 @@ export function normalizeMusicResourceId(rawId: string) {
     return playlistPathMatch[1];
   }
 
+  const songDetailPathMatch = id.match(/\/songDetail\/(\d+)/i);
+  if (songDetailPathMatch?.[1]) {
+    return songDetailPathMatch[1];
+  }
+
   if (id.includes("://") || id.startsWith("//")) {
     try {
       const parsed = new URL(id.startsWith("//") ? `https:${id}` : id);
       const queryId = parsed.searchParams.get("id")
         ?? parsed.searchParams.get("songmid")
+        ?? parsed.searchParams.get("songid")
         ?? parsed.searchParams.get("disstid");
       if (queryId) {
         return queryId.trim();
+      }
+      const songDetailMatch = parsed.pathname.match(/\/songDetail\/(\d+)/i);
+      if (songDetailMatch?.[1]) {
+        return songDetailMatch[1];
       }
       const pathMatch = parsed.pathname.match(/\/(\d+)(?:\/|$)/);
       if (pathMatch?.[1]) {

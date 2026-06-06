@@ -19,6 +19,7 @@ import {
   mapInjahowTracksToApiResponse,
   shouldUseInjahowFallback,
 } from "../utils/meting-injahow";
+import { resolveTencentResourceId } from "../utils/meting-tencent";
 import {
   resolveMetingPlayUrl,
 } from "../utils/meting-stream";
@@ -135,7 +136,9 @@ async function buildMetingApiResponse(c: AppContext) {
   const server = requestUrl.searchParams.get("server") ?? "netease";
   const type = requestUrl.searchParams.get("type") ?? "search";
   const rawId = requestUrl.searchParams.get("id") ?? "hello";
-  const id = normalizeMetingResourceId(rawId);
+  const id = server === "tencent"
+    ? await resolveTencentResourceId(rawId, type)
+    : normalizeMetingResourceId(rawId);
   const token = requestUrl.searchParams.get("token") ?? requestUrl.searchParams.get("auth") ?? "token";
 
   if (!VALID_SERVERS.has(server)) {

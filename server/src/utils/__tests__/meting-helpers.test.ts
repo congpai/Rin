@@ -16,6 +16,15 @@ describe("normalizeMetingResourceId", () => {
     );
   });
 
+  it("extracts songid from QQ Music share links", () => {
+    expect(normalizeMetingResourceId("https://i.y.qq.com/v8/playsong.html?songid=106680290")).toBe(
+      "106680290",
+    );
+    expect(normalizeMetingResourceId("https://y.qq.com/n/ryqq_v2/songDetail/106680290")).toBe(
+      "106680290",
+    );
+  });
+
   it("extracts disstid and playlist path IDs", () => {
     expect(normalizeMetingResourceId("https://y.qq.com/n/ryqq/playlist/7266465760")).toBe(
       "7266465760",

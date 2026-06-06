@@ -393,7 +393,7 @@
       },
       "id": {
         "title": "歌单 / 单曲 ID",
-        "desc": "网易云填数字 ID；QQ 音乐单曲填 songmid（如 001sTnpM1Kw5aa），歌单填数字 ID。可直接粘贴分享链接，系统会自动提取",
+        "desc": "网易云填数字 ID；QQ 音乐可直接粘贴分享链接（含 songid 短链），单曲也可填数字 songid 或 songmid。歌单填数字 ID",
         "label": "资源 ID"
       },
       "autoplay": {
