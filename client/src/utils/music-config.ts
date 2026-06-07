@@ -1,5 +1,11 @@
 export type MusicSource = "platform" | "custom";
 
+export type MusicPlatformSource = {
+  server: string;
+  type: string;
+  id: string;
+};
+
 export type CustomMusicTrack = {
   name: string;
   artist: string;
@@ -72,6 +78,77 @@ function normalizeCustomTrack(item: unknown): CustomMusicTrack | null {
 
 export function serializeCustomMusicTracks(tracks: CustomMusicTrack[]) {
   return JSON.stringify(tracks);
+}
+
+function normalizePlatformSource(item: unknown): MusicPlatformSource | null {
+  if (!item || typeof item !== "object") {
+    return null;
+  }
+  const source = item as Record<string, unknown>;
+  const server = String(source.server ?? "").trim();
+  const type = String(source.type ?? "").trim();
+  const id = String(source.id ?? "").trim();
+  if (!server || !type || !id) {
+    return null;
+  }
+  return { server, type, id };
+}
+
+export function parseMusicPlatformSources(raw: unknown): MusicPlatformSource[] {
+  if (!Array.isArray(raw)) {
+    if (typeof raw !== "string" || !raw.trim()) {
+      return [];
+    }
+    try {
+      const parsed = JSON.parse(raw);
+      if (!Array.isArray(parsed)) {
+        return [];
+      }
+      return parsed
+        .map((item) => normalizePlatformSource(item))
+        .filter((item): item is MusicPlatformSource => item !== null);
+    } catch {
+      return [];
+    }
+  }
+
+  return raw
+    .map((item) => normalizePlatformSource(item))
+    .filter((item): item is MusicPlatformSource => item !== null);
+}
+
+export function serializeMusicPlatformSources(sources: MusicPlatformSource[]) {
+  return JSON.stringify(sources);
+}
+
+export function buildMusicPlatformSources(
+  primary: MusicPlatformSource | null,
+  extraSources: MusicPlatformSource[],
+): MusicPlatformSource[] {
+  const merged: MusicPlatformSource[] = [];
+  const seen = new Set<string>();
+
+  for (const source of [primary, ...extraSources]) {
+    if (!source) {
+      continue;
+    }
+    const id = source.id.trim();
+    if (!id) {
+      continue;
+    }
+    const key = `${source.server}:${source.type}:${id}`;
+    if (seen.has(key)) {
+      continue;
+    }
+    seen.add(key);
+    merged.push({
+      server: source.server,
+      type: source.type,
+      id,
+    });
+  }
+
+  return merged;
 }
 
 export function mapMetingTracks(tracks: MetingApiTrack[]): APlayerTrack[] {

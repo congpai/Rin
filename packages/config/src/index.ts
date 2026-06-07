@@ -27,6 +27,7 @@ export const CLIENT_CONFIG_DEFAULTS = new Map(
     "music.server": "netease",
     "music.type": "playlist",
     "music.id": "",
+    "music.sources": "[]",
     "music.custom_tracks": "[]",
     "music.autoplay": false,
   }),

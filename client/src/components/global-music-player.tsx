@@ -11,19 +11,23 @@ import "aplayer/dist/APlayer.min.css";
 
 type PlayerStatus = "idle" | "loading" | "ready" | "error";
 
-async function fetchPlatformTracks(server: string, type: string, id: string) {
-  const params = new URLSearchParams({
-    server,
-    type,
-    id,
-  });
-  const response = await fetch(`/api/meting/api?${params.toString()}`);
-  if (!response.ok) {
-    throw new Error(await readApiErrorMessage(response));
-  }
-  const payload = await response.json() as MetingApiTrack[] | MetingApiTrack;
-  const list = Array.isArray(payload) ? payload : [payload];
-  const tracks = mapMetingTracks(list);
+async function fetchPlatformTracks(sources: Array<{ server: string; type: string; id: string }>) {
+  const trackGroups = await Promise.all(sources.map(async (source) => {
+    const params = new URLSearchParams({
+      server: source.server,
+      type: source.type,
+      id: source.id,
+    });
+    const response = await fetch(`/api/meting/api?${params.toString()}`);
+    if (!response.ok) {
+      throw new Error(await readApiErrorMessage(response));
+    }
+    const payload = await response.json() as MetingApiTrack[] | MetingApiTrack;
+    const list = Array.isArray(payload) ? payload : [payload];
+    return mapMetingTracks(list);
+  }));
+
+  const tracks = trackGroups.flat();
   if (tracks.length === 0) {
     throw new Error("No playable tracks found");
   }
@@ -33,9 +37,7 @@ async function fetchPlatformTracks(server: string, type: string, id: string) {
 export function GlobalMusicPlayer() {
   const {
     musicSource,
-    musicServer,
-    musicType,
-    musicId,
+    musicPlatformSources,
     musicCustomTracks,
     musicAutoplay,
     themeColor,
@@ -75,7 +77,7 @@ export function GlobalMusicPlayer() {
 
       const rawAudio = musicSource === "custom"
         ? mapCustomTracks(musicCustomTracks)
-        : await fetchPlatformTracks(musicServer, musicType, musicId);
+        : await fetchPlatformTracks(musicPlatformSources);
 
       const audio = rawAudio.map(({ name, artist, url, cover }) => ({
         name,
@@ -130,10 +132,8 @@ export function GlobalMusicPlayer() {
     shouldRender,
     musicAutoplay,
     musicCustomTracks,
-    musicId,
-    musicServer,
+    musicPlatformSources,
     musicSource,
-    musicType,
     themeColor,
   ]);
 

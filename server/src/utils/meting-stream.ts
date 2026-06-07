@@ -1,5 +1,6 @@
 import type Meting from "@meting/core";
 import { mergeNeteaseCookies } from "./meting-cookie";
+import { fetchTencentPlayUrl } from "./meting-tencent";
 import { isHttpUrl, normalizeStreamUrl } from "./meting-helpers";
 
 const INJAHOW_METING_BASE = "https://api.injahow.cn/meting";
@@ -106,8 +107,15 @@ export async function resolveMetingPlayUrl(
   server: string,
   id: string,
   meting: MetingInstance,
-  options?: { preferHighQuality?: boolean },
+  options?: { preferHighQuality?: boolean; userCookie?: string },
 ) {
+  if (server === "tencent") {
+    const tencentUrl = await fetchTencentPlayUrl(id, options?.userCookie);
+    if (tencentUrl) {
+      return tencentUrl;
+    }
+  }
+
   const directUrl = await fetchMetingUrlFromProvider(server, meting, id, {
     preferHighQuality: options?.preferHighQuality,
   });
@@ -150,6 +158,9 @@ export async function proxyAudioStream(
   }
   if (server === "netease" && userCookie?.trim()) {
     headers.Cookie = mergeNeteaseCookies("", userCookie.trim());
+  }
+  if (server === "tencent" && userCookie?.trim()) {
+    headers.Cookie = userCookie.trim();
   }
   if (rangeHeader) {
     headers.Range = rangeHeader;

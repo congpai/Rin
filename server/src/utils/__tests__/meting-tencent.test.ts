@@ -8,9 +8,11 @@ import {
 } from "bun:test";
 import { normalizeMetingResourceId } from "../meting-helpers";
 import {
+  fetchTencentPlayUrl,
   fetchTencentSongMidFromSongId,
   followShareRedirects,
   isTencentSongShareUrl,
+  readTencentUin,
   resolveTencentResourceId,
 } from "../meting-tencent";
 
@@ -42,6 +44,19 @@ beforeEach(() => {
 
     if (url.includes("fcg_play_single_song.fcg?songid=106680290")) {
       return mockSongDetailResponse();
+    }
+
+    if (url.includes("musicu.fcg") && url.includes("001sTnpM1Kw5aa")) {
+      return new Response(JSON.stringify({
+        req: {
+          data: {
+            sip: ["http://aqqmusic.tc.qq.com/"],
+            midurlinfo: [{
+              purl: "C400001sTnpM1Kw5aa.m4a?guid=10000&vkey=test",
+            }],
+          },
+        },
+      }), { status: 200 });
     }
 
     return new Response(null, { status: 404 });
@@ -101,6 +116,20 @@ describe("followShareRedirects", () => {
 
     const resolved = await followShareRedirects("https://short.example/s/1");
     expect(resolved).toBe(SONG_DETAIL_URL);
+  });
+});
+
+describe("readTencentUin", () => {
+  it("extracts numeric uin from cookie", () => {
+    expect(readTencentUin("uin=o0123456789; qqmusic_key=abc")).toBe("123456789");
+    expect(readTencentUin("")).toBe("0");
+  });
+});
+
+describe("fetchTencentPlayUrl", () => {
+  it("builds playable url from vkey response", async () => {
+    const url = await fetchTencentPlayUrl("001sTnpM1Kw5aa");
+    expect(url).toBe("https://aqqmusic.tc.qq.com/C400001sTnpM1Kw5aa.m4a?guid=10000&vkey=test");
   });
 });
 

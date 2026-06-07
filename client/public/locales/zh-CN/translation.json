@@ -392,9 +392,18 @@
         }
       },
       "id": {
-        "title": "歌单 / 单曲 ID",
+        "title": "主歌单 / 单曲 ID",
         "desc": "网易云填数字 ID；QQ 音乐可直接粘贴分享链接（含 songid 短链），单曲也可填数字 songid 或 songmid。歌单填数字 ID",
         "label": "资源 ID"
+      },
+      "sources": {
+        "title": "额外歌单（多平台混合）",
+        "desc": "可在此添加 QQ 音乐、网易云等其他平台歌单，会与上方主歌单合并播放",
+        "empty": "暂无额外歌单，点击下方按钮添加",
+        "item_title": "额外歌单 {{index}}",
+        "item_desc": "选择平台、类型并填写 ID 或分享链接",
+        "add": "添加额外歌单",
+        "remove": "删除"
       },
       "autoplay": {
         "title": "自动播放",

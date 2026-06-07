@@ -392,9 +392,18 @@
         }
       },
       "id": {
-        "title": "Playlist / song ID",
+        "title": "Primary playlist / song ID",
         "desc": "NetEase: numeric ID. QQ Music: paste share links (including songid short links), or use numeric songid / songmid for songs; numeric ID for playlists",
         "label": "Resource ID"
+      },
+      "sources": {
+        "title": "Extra playlists (multi-platform mix)",
+        "desc": "Add QQ Music, NetEase, or other platform playlists here. They merge with the primary playlist above.",
+        "empty": "No extra playlists yet. Click below to add one.",
+        "item_title": "Extra playlist {{index}}",
+        "item_desc": "Choose platform, type, and ID or share link",
+        "add": "Add extra playlist",
+        "remove": "Remove"
       },
       "autoplay": {
         "title": "Autoplay",

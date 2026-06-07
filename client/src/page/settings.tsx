@@ -33,7 +33,7 @@ import {
   updateDraftConfig,
   uploadFavicon,
 } from "./settings-helpers";
-import { SettingsMusicTracksEditor } from "./settings-music";
+import { SettingsMusicSourcesEditor, SettingsMusicTracksEditor } from "./settings-music";
 
 import "../utils/thumb.css";
 
@@ -611,6 +611,24 @@ export function Settings() {
                   setConfigValue("client", "music.id", value);
                 }}
               />
+              <div className="w-full">
+                <SettingsCard>
+                  <SettingsCardBody>
+                    <SettingsCardHeader
+                      title={t("settings.music.sources.title")}
+                      description={t("settings.music.sources.desc")}
+                    />
+                    <div className="mt-3">
+                      <SettingsMusicSourcesEditor
+                        value={String(clientConfig.get("music.sources") ?? "[]")}
+                        onChange={(value) => {
+                          setConfigValue("client", "music.sources", value);
+                        }}
+                      />
+                    </div>
+                  </SettingsCardBody>
+                </SettingsCard>
+              </div>
             </>
           ) : (
             <SettingsMusicTracksEditor

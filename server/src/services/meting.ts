@@ -22,6 +22,7 @@ import {
 import { resolveTencentResourceId } from "../utils/meting-tencent";
 import {
   resolveMetingPlayUrl,
+  proxyAudioStream,
 } from "../utils/meting-stream";
 
 const VALID_SERVERS = new Set(["netease", "tencent", "kugou", "baidu", "kuwo"]);
@@ -174,6 +175,7 @@ async function buildMetingApiResponse(c: AppContext) {
       const meting = createMetingInstance(c, server);
       streamUrl = await resolveMetingPlayUrl(server, id, meting, {
         preferHighQuality: Boolean(userCookie),
+        userCookie,
       });
       if (streamUrl) {
         setCachedValue(streamCacheKey, streamUrl, 1000 * 60 * 10);
@@ -186,6 +188,21 @@ async function buildMetingApiResponse(c: AppContext) {
           ? "无法获取 QQ 音乐播放地址，请检查歌单/歌曲 ID 或 Cookie"
           : "无法获取播放地址，请检查 Cookie 是否有效，或稍后重试",
       }, 404);
+    }
+
+    if (server === "tencent") {
+      const proxied = await proxyAudioStream(
+        server,
+        streamUrl,
+        c.req.header("range"),
+        userCookie,
+      );
+      if (!proxied.ok) {
+        return c.json({
+          message: "QQ 音乐音频流获取失败，请检查 Cookie 或稍后重试",
+        }, 502);
+      }
+      return proxied;
     }
 
     return c.redirect(streamUrl, 302);

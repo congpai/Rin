@@ -1,8 +1,11 @@
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { ClientConfigContext, defaultClientConfig } from "../state/config";
 import {
+  buildMusicPlatformSources,
   normalizeMusicSource,
   parseCustomMusicTracks,
+  parseMusicPlatformSources,
+  type MusicPlatformSource,
 } from "../utils/music-config";
 import { normalizeMusicResourceId } from "../utils/music-api";
 import { MUSIC_SERVERS, MUSIC_TYPES } from "./useSiteConfig";
@@ -92,6 +95,14 @@ export function useMusicPlayerConfig() {
     ? musicTypeRaw as typeof MUSIC_TYPES[number]
     : "playlist";
   const musicId = normalizeMusicResourceId(String(readConfigValue(mergedConfig, "music.id") ?? ""));
+  const platformId = musicId.trim();
+  const musicPlatformSources = useMemo(() => {
+    const primary: MusicPlatformSource | null = platformId.length > 0
+      ? { server: musicServer, type: musicType, id: platformId }
+      : null;
+    const extraSources = parseMusicPlatformSources(readConfigValue(mergedConfig, "music.sources"));
+    return buildMusicPlatformSources(primary, extraSources);
+  }, [mergedConfig, musicServer, musicType, platformId]);
   const musicCustomTracks = useMemo(
     () => parseCustomMusicTracks(readConfigValue(mergedConfig, "music.custom_tracks")),
     [mergedConfig],
@@ -99,8 +110,7 @@ export function useMusicPlayerConfig() {
   const musicAutoplay = parseBoolean(readConfigValue(mergedConfig, "music.autoplay"));
   const themeColor = String(readConfigValue(mergedConfig, "theme.color") ?? "#fc466b");
 
-  const platformId = musicId.trim();
-  const hasPlatformSource = musicSource === "platform" && platformId.length > 0;
+  const hasPlatformSource = musicSource === "platform" && musicPlatformSources.length > 0;
   const hasCustomSource = musicSource === "custom" && musicCustomTracks.length > 0;
   const shouldRender = musicEnabled && (hasPlatformSource || hasCustomSource);
 
@@ -110,6 +120,7 @@ export function useMusicPlayerConfig() {
     musicServer,
     musicType,
     musicId: platformId,
+    musicPlatformSources,
     musicCustomTracks,
     musicAutoplay,
     themeColor,

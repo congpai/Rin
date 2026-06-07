@@ -1,4 +1,4 @@
-import { normalizeMetingResourceId } from "./meting-helpers";
+import { isHttpUrl, normalizeMetingResourceId, normalizeStreamUrl } from "./meting-helpers";
 
 const QQ_SONG_DETAIL_API = "https://c.y.qq.com/v8/fcg-bin/fcg_play_single_song.fcg";
 
@@ -95,4 +95,80 @@ export async function resolveTencentResourceId(rawId: string, type: string) {
 
   const songMid = await fetchTencentSongMidFromSongId(normalizedId);
   return songMid ?? normalizedId;
+}
+
+type TencentVkeyResponse = {
+  req?: {
+    data?: {
+      sip?: string[];
+      midurlinfo?: Array<{
+        purl?: string;
+      }>;
+    };
+  };
+};
+
+export function readTencentUin(userCookie?: string) {
+  if (!userCookie?.trim()) {
+    return "0";
+  }
+
+  const match = userCookie.match(/(?:^|;\s*)uin=([^;]+)/i);
+  if (!match?.[1]) {
+    return "0";
+  }
+
+  const decoded = decodeURIComponent(match[1]).trim();
+  return decoded.replace(/^o0*/i, "") || "0";
+}
+
+export async function fetchTencentPlayUrl(songMid: string, userCookie?: string) {
+  const mid = songMid.trim();
+  if (!mid) {
+    return "";
+  }
+
+  const uin = readTencentUin(userCookie);
+  const payload = {
+    req: {
+      module: "vkey.GetVkeyServer",
+      method: "CgiGetVkey",
+      param: {
+        guid: "10000",
+        g_uin: Number(uin) || 0,
+        songmid: [mid],
+        songtype: [0],
+        uin: String(uin),
+        loginflag: 1,
+        platform: "20",
+      },
+    },
+  };
+
+  const headers: Record<string, string> = {
+    Referer: "https://y.qq.com/",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+  };
+  if (userCookie?.trim()) {
+    headers.Cookie = userCookie.trim();
+  }
+
+  const response = await fetch(
+    `https://u.y.qq.com/cgi-bin/musicu.fcg?format=json&data=${encodeURIComponent(JSON.stringify(payload))}`,
+    { headers },
+  );
+  if (!response.ok) {
+    return "";
+  }
+
+  const data = await response.json().catch(() => null) as TencentVkeyResponse | null;
+  const info = data?.req?.data?.midurlinfo?.[0];
+  const purl = info?.purl?.trim();
+  if (!purl) {
+    return "";
+  }
+
+  const sip = data?.req?.data?.sip?.[0]?.trim() || "https://dl.stream.qqmusic.qq.com/";
+  const url = normalizeStreamUrl("tencent", `${sip}${purl}`);
+  return isHttpUrl(url) ? url : "";
 }
