@@ -315,7 +315,9 @@ export function SettingsMusicItemsEditor({
 }) {
   const { t } = useTranslation();
   const [uploadIndex, setUploadIndex] = useState<number | null>(null);
-  const items = useMemo(() => parseMusicItems(value), [value]);
+  // Lenient: keep rows that are still being filled in so they don't vanish on
+  // add or while typing the id / url.
+  const items = useMemo(() => parseMusicItems(value, { lenient: true }), [value]);
 
   function commit(nextItems: MusicItem[]) {
     onChange(serializeMusicItems(nextItems));

@@ -572,7 +572,11 @@ export function Settings() {
                 />
                 <div className="mt-3">
                   <SettingsMusicItemsEditor
-                    value={resolveMusicItemsValue(clientConfig)}
+                    value={
+                      typeof draft.clientConfig["music.items"] === "string"
+                        ? (draft.clientConfig["music.items"] as string)
+                        : resolveMusicItemsValue(clientConfig)
+                    }
                     onChange={(value) => {
                       setConfigValue("client", "music.items", value);
                     }}

@@ -204,7 +204,10 @@ export function emptyCustomItem(): MusicCustomItem {
   return { kind: "custom", name: "", artist: "", url: "", cover: "" };
 }
 
-function normalizeMusicItem(item: unknown): MusicItem | null {
+// `lenient` keeps half-filled entries (empty id / url) so the settings editor
+// can hold rows the user is still typing into. The strict default drops them,
+// which is what the player wants (never fetch an empty id).
+function normalizeMusicItem(item: unknown, lenient = false): MusicItem | null {
   if (!item || typeof item !== "object") {
     return null;
   }
@@ -216,12 +219,14 @@ function normalizeMusicItem(item: unknown): MusicItem | null {
 
   if (looksCustom) {
     const url = String(record.url ?? "").trim();
-    if (!url) {
+    if (!url && !lenient) {
       return null;
     }
     return {
       kind: "custom",
-      name: String(record.name ?? "Untitled").trim() || "Untitled",
+      name: lenient
+        ? String(record.name ?? "").trim()
+        : String(record.name ?? "Untitled").trim() || "Untitled",
       artist: String(record.artist ?? "").trim(),
       url,
       cover: String(record.cover ?? "").trim() || undefined,
@@ -232,13 +237,19 @@ function normalizeMusicItem(item: unknown): MusicItem | null {
   const server = String(record.server ?? "").trim();
   const type = String(record.type ?? "").trim();
   const id = String(record.id ?? "").trim();
-  if (!server || !type || !id) {
+  if ((!server || !type || !id) && !lenient) {
     return null;
   }
-  return { kind: "platform", server, type, id };
+  return {
+    kind: "platform",
+    server: server || "netease",
+    type: type || "playlist",
+    id,
+  };
 }
 
-export function parseMusicItems(raw: unknown): MusicItem[] {
+export function parseMusicItems(raw: unknown, options?: { lenient?: boolean }): MusicItem[] {
+  const lenient = options?.lenient ?? false;
   let source: unknown = raw;
   if (typeof raw === "string") {
     if (!raw.trim()) {
@@ -254,7 +265,7 @@ export function parseMusicItems(raw: unknown): MusicItem[] {
     return [];
   }
   return source
-    .map((item) => normalizeMusicItem(item))
+    .map((item) => normalizeMusicItem(item, lenient))
     .filter((item): item is MusicItem => item !== null);
 }
 
