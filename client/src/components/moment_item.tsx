@@ -12,6 +12,7 @@ interface Moment {
     content: string;
     createdAt: Date;
     updatedAt: Date;
+    private?: number | boolean;
     hashtags?: Array<{ id: number; name: string }>;
     user: {
         id: number;
@@ -55,8 +56,14 @@ export function MomentItem({
                         className="w-8 h-8 rounded-full object-cover"
                     />
                     <div>
-                        <p className="t-primary">
-                            {moment.user.username}
+                        <p className="t-primary flex items-center gap-2">
+                            <span>{moment.user.username}</span>
+                            {moment.private ? (
+                                <span className="inline-flex items-center gap-1 rounded-full bg-secondary px-2 py-0.5 text-xs font-normal t-secondary">
+                                    <i className="ri-lock-line" />
+                                    {t('moments.private_badge')}
+                                </span>
+                            ) : null}
                         </p>
                         <p className="space-x-2 t-secondary text-sm">
                             <span title={new Date(createdAt).toLocaleString()}>

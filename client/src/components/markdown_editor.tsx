@@ -117,6 +117,57 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
     await insertImages(imageFiles);
   };
 
+  /* ---------------- Markdown formatting toolbar ---------------- */
+
+  const applyWrap = useCallback((prefix: string, suffix: string, placeholder: string) => {
+    const ed = editorRef.current;
+    const model = ed?.getModel();
+    const selection = ed?.getSelection();
+    if (!ed || !model || !selection) return;
+    const selected = model.getValueInRange(selection);
+    const text = `${prefix}${selected || placeholder}${suffix}`;
+    ed.executeEdits("format-wrap", [{ range: selection, text, forceMoveMarkers: true }]);
+    setContent(ed.getValue());
+    ed.focus();
+  }, [setContent]);
+
+  const applyLinePrefix = useCallback((linePrefix: string) => {
+    const ed = editorRef.current;
+    const model = ed?.getModel();
+    const selection = ed?.getSelection();
+    if (!ed || !model || !selection) return;
+    const edits = [];
+    for (let line = selection.startLineNumber; line <= selection.endLineNumber; line++) {
+      edits.push({ range: new Range(line, 1, line, 1), text: linePrefix, forceMoveMarkers: true });
+    }
+    ed.executeEdits("format-line", edits);
+    setContent(ed.getValue());
+    ed.focus();
+  }, [setContent]);
+
+  const applyCodeBlock = useCallback(() => {
+    const ed = editorRef.current;
+    const model = ed?.getModel();
+    const selection = ed?.getSelection();
+    if (!ed || !model || !selection) return;
+    const selected = model.getValueInRange(selection);
+    const text = "```js\n" + (selected || "") + "\n```\n";
+    ed.executeEdits("format-codeblock", [{ range: selection, text, forceMoveMarkers: true }]);
+    setContent(ed.getValue());
+    ed.focus();
+  }, [setContent]);
+
+  const formatButtons = [
+    { icon: "ri-h-2", title: t("editor.toolbar.heading"), run: () => applyLinePrefix("## ") },
+    { icon: "ri-bold", title: t("editor.toolbar.bold"), run: () => applyWrap("**", "**", t("editor.toolbar.bold_text")) },
+    { icon: "ri-italic", title: t("editor.toolbar.italic"), run: () => applyWrap("*", "*", t("editor.toolbar.italic_text")) },
+    { icon: "ri-double-quotes-l", title: t("editor.toolbar.quote"), run: () => applyLinePrefix("> ") },
+    { icon: "ri-list-unordered", title: t("editor.toolbar.list"), run: () => applyLinePrefix("- ") },
+    { icon: "ri-code-line", title: t("editor.toolbar.inline_code"), run: () => applyWrap("`", "`", "code") },
+    { icon: "ri-code-box-line", title: t("editor.toolbar.code_block"), run: applyCodeBlock },
+    { icon: "ri-link", title: t("editor.toolbar.link"), run: () => applyWrap("[", "](https://)", t("editor.toolbar.link_text")) },
+  ];
+
   /* ---------------- Monaco Mount & IME Optimization ---------------- */
 
   const handleEditorMount = (editor: editor.IStandaloneCodeEditor) => {
@@ -193,6 +244,22 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
           </div>
         }
       </FlatInset>
+      {preview !== 'preview' && (
+        <FlatInset className="flex flex-wrap items-center gap-1 border-0 border-b border-black/10 rounded-none bg-transparent px-3 py-2 dark:border-white/10">
+          {formatButtons.map((button) => (
+            <button
+              key={button.icon}
+              type="button"
+              title={button.title}
+              aria-label={button.title}
+              onClick={button.run}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-lg t-primary transition-colors hover:bg-secondary"
+            >
+              <i className={button.icon} />
+            </button>
+          ))}
+        </FlatInset>
+      )}
       <div className={`grid grid-cols-1 gap-0 sm:gap-4 ${preview === 'comparison' ? "lg:grid-cols-2" : ""}`}>
         <div className={"flex min-w-0 flex-col " + (preview === 'preview' ? "hidden" : "")}>
           <div

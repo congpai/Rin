@@ -236,7 +236,9 @@
     "tags_placeholder": "#タグ1 #タグ2",
     "tags_hint": "最大5つのタグ。#で区切り、記事タグと共通",
     "total$count_one": "{{count}} 件の動態",
-    "total$count_other": "{{count}} 件の動態"
+    "total$count_other": "{{count}} 件の動態",
+    "private": "自分のみ表示（訪問者には非公開）",
+    "private_badge": "非公開"
   },
   "next": "次のページ",
   "no_more": "もうない",
@@ -794,5 +796,20 @@
   "sort_latest": "新着",
   "sort_popular": "人気",
   "total_tags": "全 {{count}} 個のタグ",
-  "anonymous": "匿名"
+  "anonymous": "匿名",
+  "editor": {
+    "toolbar": {
+      "heading": "見出し",
+      "bold": "太字",
+      "bold_text": "太字テキスト",
+      "italic": "斜体",
+      "italic_text": "斜体テキスト",
+      "quote": "引用",
+      "list": "箇条書き",
+      "inline_code": "インラインコード",
+      "code_block": "コードブロック",
+      "link": "リンク",
+      "link_text": "リンクテキスト"
+    }
+  }
 }

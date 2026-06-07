@@ -257,6 +257,8 @@ export interface Moment {
   content: string;
   createdAt: string;
   updatedAt: string;
+  /** 仅自己可见(1/true 时公开访客不可见) */
+  private?: number | boolean;
   hashtags?: Array<{ id: number; name: string }>;
   user: {
     id: number;
@@ -268,6 +270,7 @@ export interface Moment {
 export interface CreateMomentRequest {
   content: string;
   tags?: string[];
+  private?: boolean;
 }
 
 export interface MomentListResponse {

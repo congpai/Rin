@@ -251,7 +251,9 @@
     "tags_placeholder": "#tag1 #tag2",
     "tags_hint": "Up to 5 tags, separated by #. Shared with article tags.",
     "total$count_one": "{{count}} moment in total",
-    "total$count_other": "{{count}} moments in total"
+    "total$count_other": "{{count}} moments in total",
+    "private": "Only visible to me (hidden from visitors)",
+    "private_badge": "Private"
   },
   "next": "Next Page",
   "no_more": "No More",
@@ -809,5 +811,20 @@
   "sort_latest": "Latest",
   "sort_popular": "Popular",
   "total_tags": "Total {{count}} tags",
-  "anonymous": "Anonymous"
+  "anonymous": "Anonymous",
+  "editor": {
+    "toolbar": {
+      "heading": "Heading",
+      "bold": "Bold",
+      "bold_text": "bold text",
+      "italic": "Italic",
+      "italic_text": "italic text",
+      "quote": "Quote",
+      "list": "Bulleted list",
+      "inline_code": "Inline code",
+      "code_block": "Code block",
+      "link": "Link",
+      "link_text": "link text"
+    }
+  }
 }

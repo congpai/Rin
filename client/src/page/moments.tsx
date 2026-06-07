@@ -30,6 +30,7 @@ interface Moment {
     content: string;
     createdAt: Date;
     updatedAt: Date;
+    private?: number | boolean;
     hashtags?: Array<{ id: number; name: string }>;
     user: {
         id: number;
@@ -43,6 +44,7 @@ export function MomentsPage() {
     const [length, setLength] = useState(0)
     const [content, setContent] = useState("")
     const [tags, setTags] = useState("")
+    const [isPrivate, setIsPrivate] = useState(false)
     const [loading, setLoading] = useState(false)
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingMoment, setEditingMoment] = useState<Moment | null>(null)
@@ -109,13 +111,14 @@ export function MomentsPage() {
         const tagList = parseTagsInput(tags)
 
         if (editingMoment) {
-            client.moments.update(editingMoment.id, { content, tags: tagList })
+            client.moments.update(editingMoment.id, { content, tags: tagList, private: isPrivate })
             .then(({ error }) => {
                 if (error) {
                     showAlert(t('update.failed$message', { message: error.value }))
                 } else {
                     setContent("")
                     setTags("")
+                    setIsPrivate(false)
                     setEditingMoment(null)
                     setIsModalOpen(false)
                     fetchMoments(1, false)
@@ -125,13 +128,14 @@ export function MomentsPage() {
                 setLoading(false)
             })
         } else {
-            client.moments.create({ content, tags: tagList })
+            client.moments.create({ content, tags: tagList, private: isPrivate })
             .then(({ error }) => {
                 if (error) {
                     showAlert(t('publish.failed$message', { message: error.value }))
                 } else {
                     setContent("")
                     setTags("")
+                    setIsPrivate(false)
                     setIsModalOpen(false)
                     fetchMoments(1, false)
                     showAlert(t('publish.success'))
@@ -141,11 +145,12 @@ export function MomentsPage() {
             })
         }
     }
-    
+
     function handleEdit(moment: Moment) {
         setEditingMoment(moment)
         setContent(moment.content)
         setTags(formatTagsInput(moment.hashtags ?? []))
+        setIsPrivate(Boolean(moment.private))
         setIsModalOpen(true)
     }
     
@@ -171,6 +176,7 @@ export function MomentsPage() {
             setContent("")
             setTags("")
         }
+        setIsPrivate(false)
         setEditingMoment(null)
         setIsModalOpen(true)
     }
@@ -339,7 +345,17 @@ export function MomentsPage() {
                         />
                         <p className="mt-1 text-xs text-neutral-500">{t("moments.tags_hint")}</p>
                     </div>
-                    
+
+                    <label className="mt-3 flex items-center gap-2 text-sm t-primary cursor-pointer select-none">
+                        <input
+                            type="checkbox"
+                            checked={isPrivate}
+                            onChange={(e) => setIsPrivate(e.target.checked)}
+                            className="h-4 w-4 accent-theme"
+                        />
+                        <span>{t("moments.private")}</span>
+                    </label>
+
                     <div className="flex justify-end mt-4 space-x-2">
                         <button
                             onClick={closeModal}

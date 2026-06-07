@@ -25,25 +25,30 @@ export function MomentsService(): Hono {
     app.get('/', async (c: AppContext) => {
         const db = c.get('db');
         const cache = c.get('cache');
+        const admin = c.get('admin');
         const page = c.req.query('page');
         const limit = c.req.query('limit');
-        
+
         const page_num = (page ? parseInt(page) > 0 ? parseInt(page) : 1 : 1) - 1;
         const limit_num = limit ? parseInt(limit) > 50 ? 50 : parseInt(limit) : 20;
-        const cacheKey = `moments_v2_${page_num}_${limit_num}`;
+        // Private moments are only visible to the admin; key the cache by viewer
+        // role so the public cache never contains private items.
+        const visibilityFilter = admin ? undefined : eq(moments.private, 0);
+        const cacheKey = `moments_v2_${admin ? 'admin' : 'pub'}_${page_num}_${limit_num}`;
         const cached = await profileAsync(c, 'moments_list_cache_get', () => cache.get(cacheKey));
-        
+
         if (cached) {
             return c.json(cached);
         }
-        
-        const size = await profileAsync(c, 'moments_list_count', () => db.select({ count: count() }).from(moments));
-        
+
+        const size = await profileAsync(c, 'moments_list_count', () => db.select({ count: count() }).from(moments).where(visibilityFilter));
+
         if (size[0].count === 0) {
             return c.json({ size: 0, data: [], hasNext: false });
         }
-        
+
         const moments_list = await profileAsync(c, 'moments_list_db', () => db.query.moments.findMany({
+            where: visibilityFilter,
             with: {
                 user: { columns: { id: true, username: true, avatar: true } },
                 hashtags: {
@@ -78,16 +83,16 @@ export function MomentsService(): Hono {
         const uid = c.get('uid');
         const admin = c.get('admin');
         const body = await profileAsync(c, 'moments_create_parse', () => c.req.json());
-        const { content, tags } = body;
-        
+        const { content, tags, private: isPrivate } = body;
+
         if (!uid) {
             return c.text('Unauthorized', 401);
         }
-        
+
         if (!admin) {
             return c.text('Permission denied', 403);
         }
-        
+
         if (!content) {
             return c.text('Content is required', 400);
         }
@@ -96,10 +101,10 @@ export function MomentsService(): Hono {
         if (Array.isArray(tags) && tags.length > MAX_MOMENT_TAGS) {
             return c.text(`At most ${MAX_MOMENT_TAGS} tags are allowed`, 400);
         }
-        
+
         const date = new Date();
         const result = await profileAsync(c, 'moments_create_insert', () => db.insert(moments).values({
-            content, uid, createdAt: date, updatedAt: date
+            content, uid, private: isPrivate ? 1 : 0, createdAt: date, updatedAt: date
         }).returning({ insertedId: moments.id }));
         
         if (result.length === 0) {
@@ -122,7 +127,7 @@ export function MomentsService(): Hono {
         const admin = c.get('admin');
         const id = c.req.param('id');
         const body = await profileAsync(c, 'moments_update_parse', () => c.req.json());
-        const { content, tags } = body;
+        const { content, tags, private: isPrivate } = body;
         
         if (!uid) {
             return c.text('Unauthorized', 401);
@@ -150,6 +155,7 @@ export function MomentsService(): Hono {
         
         await profileAsync(c, 'moments_update_db', () => db.update(moments).set({
             content,
+            ...(isPrivate === undefined ? {} : { private: isPrivate ? 1 : 0 }),
             updatedAt: new Date()
         }).where(eq(moments.id, id_num)));
 

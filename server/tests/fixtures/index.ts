@@ -62,6 +62,7 @@ export function createMockDB() {
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             content TEXT NOT NULL,
             uid INTEGER NOT NULL,
+            private INTEGER NOT NULL DEFAULT 0,
             created_at INTEGER DEFAULT (unixepoch()),
             updated_at INTEGER DEFAULT (unixepoch()),
             FOREIGN KEY (uid) REFERENCES users(id)

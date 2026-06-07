@@ -25,6 +25,7 @@ export const moments = sqliteTable("moments", {
     id: integer("id").primaryKey(),
     content: text("content").notNull(),
     uid: integer("uid").references(() => users.id).notNull(),
+    private: integer("private").default(0).notNull(),
     createdAt: created_at,
     updatedAt: updated_at
 });
