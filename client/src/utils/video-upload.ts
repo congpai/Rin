@@ -53,5 +53,8 @@ export async function uploadVideoFile(
 // Surrounded by blank lines so it becomes a standalone block — any caption
 // text typed before it stays above the video instead of merging into it.
 export function buildMarkdownVideo(url: string) {
-  return `\n\n<video controls preload="metadata" src="${url}" style="max-width:100%"></video>\n\n`;
+  // #t=0.1 makes mobile browsers render the first frame as a poster;
+  // playsinline keeps playback inline on iOS.
+  const src = url.includes("#") ? url : `${url}#t=0.1`;
+  return `\n\n<video controls playsinline preload="metadata" src="${src}" style="max-width:100%"></video>\n\n`;
 }

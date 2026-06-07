@@ -454,9 +454,42 @@ export function Markdown({ content }: { content: string }) {
           return <div {...props}>{children}</div>;
         },
         iframe({ node, ...props }) {
+          let src = typeof props.src === "string" ? props.src : undefined;
+          // Bilibili player: default to no autoplay unless the embed says otherwise.
+          if (src && /player\.bilibili\.com/.test(src) && !/[?&]autoplay=/.test(src)) {
+            src = `${src}${src.includes("?") ? "&" : "?"}autoplay=0`;
+          }
+          const inlineStyle = props.style as React.CSSProperties | undefined;
+          const hasExplicitHeight =
+            props.height != null || Boolean(inlineStyle?.height) || Boolean(inlineStyle?.aspectRatio);
           return (
             <iframe
               {...props}
+              src={src}
+              className={`max-w-full ${props.className || ""}`.trim()}
+              style={
+                hasExplicitHeight
+                  ? { maxWidth: "100%", ...inlineStyle }
+                  : { width: "100%", aspectRatio: "16 / 9", border: 0, ...inlineStyle }
+              }
+            />
+          );
+        },
+        video({ node, ...props }) {
+          let src = typeof props.src === "string" ? props.src : undefined;
+          // Mobile browsers (esp. iOS) show only a play button with no poster
+          // frame; seeking to 0.1s via a media fragment forces the first frame
+          // to render. playsInline keeps it inline instead of going fullscreen.
+          if (src && !src.includes("#t=")) {
+            src = `${src}#t=0.1`;
+          }
+          return (
+            <video
+              {...props}
+              src={src}
+              controls
+              playsInline
+              preload="metadata"
               className={`max-w-full ${props.className || ""}`.trim()}
               style={{ maxWidth: "100%", ...(props.style as React.CSSProperties) }}
             />
