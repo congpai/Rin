@@ -83,41 +83,40 @@ function resolveReplyTargetComment(
     return byId.get(targetId) ?? root;
 }
 
-function ClickableUser({
+function CommentUser({
     name,
     avatar,
-    onClick,
+    website,
 }: {
     name: string;
     avatar: string;
-    onClick?: () => void;
+    website?: string;
 }) {
-    const inner = (
-        <>
+    return (
+        <span className="inline-flex items-center gap-1 align-middle">
             <img
                 src={avatar}
                 alt=""
                 className="h-4 w-4 shrink-0 rounded-full object-cover"
             />
-            <span className="font-semibold text-theme">{name}</span>
-        </>
+            {website ? (
+                <a
+                    href={website}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="font-semibold text-theme hover:underline"
+                >
+                    {name}
+                </a>
+            ) : (
+                <span className="font-semibold text-theme">{name}</span>
+            )}
+        </span>
     );
+}
 
-    if (!onClick) {
-        return (
-            <span className="inline-flex items-center gap-1 align-middle">{inner}</span>
-        );
-    }
-
-    return (
-        <button
-            type="button"
-            className="inline-flex items-center gap-1 align-middle hover:opacity-80"
-            onClick={onClick}
-        >
-            {inner}
-        </button>
-    );
+function commentWebsite(comment: CommentRecord): string | undefined {
+    return comment.guestWebsite?.trim() || undefined;
 }
 
 function CommentModerationActions({
@@ -325,14 +324,16 @@ function CommentReplyTail({
                         className={`py-1.5 ${pending ? "rounded-md bg-amber-50/80 px-2 -mx-2 dark:bg-amber-950/20" : ""}`}
                     >
                         <div className="min-w-0 break-words leading-relaxed t-primary">
-                            <ClickableUser
+                            <CommentUser
                                 name={name}
                                 avatar={commentAvatar(reply, defaultAvatar)}
+                                website={commentWebsite(reply)}
                             />
                             <span className="t-secondary"> {t("comment.reply_action")} </span>
-                            <ClickableUser
+                            <CommentUser
                                 name={targetName}
                                 avatar={commentAvatar(target, defaultAvatar)}
+                                website={commentWebsite(target)}
                             />
                             <span className="t-secondary">：</span>
                             {text ? (
@@ -409,21 +410,22 @@ function CommentThread({
                 }`}
             >
                 <div className="flex flex-row items-center gap-2">
-                    <span className="text-base font-bold t-primary">{name}</span>
-                    {pending ? (
-                        <span className="rounded-full bg-amber-200/80 px-2 py-0.5 text-xs font-medium text-amber-900 dark:bg-amber-900/50 dark:text-amber-100">
-                            {t("comment.pending")}
-                        </span>
-                    ) : null}
                     {root.guestWebsite ? (
                         <a
                             href={root.guestWebsite}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="ml-2 text-gray-400 transition-colors hover:text-theme"
+                            className="text-base font-bold text-theme hover:underline"
                         >
-                            <i className="ri-external-link-line" />
+                            {name}
                         </a>
+                    ) : (
+                        <span className="text-base font-bold text-theme">{name}</span>
+                    )}
+                    {pending ? (
+                        <span className="rounded-full bg-amber-200/80 px-2 py-0.5 text-xs font-medium text-amber-900 dark:bg-amber-900/50 dark:text-amber-100">
+                            {t("comment.pending")}
+                        </span>
                     ) : null}
                     <div className="flex-1" />
                     {isAdmin && pending ? (
