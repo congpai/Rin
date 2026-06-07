@@ -16,6 +16,18 @@ export default defineConfig(({ mode }) => {
     build: {
       outDir: '../dist/client',
       emptyOutDir: true,
+      // Don't eagerly <link rel="modulepreload"> the heavy, route-specific
+      // chunks (Monaco editor, mermaid, katex, markdown, highlight, lightbox,
+      // primereact). They were being preloaded on every page — including the
+      // home feed — adding several MB of unused JS to first paint. They still
+      // load on demand when their route/feature actually needs them.
+      modulePreload: {
+        resolveDependencies: (_filename, deps) =>
+          deps.filter(
+            (dep) =>
+              !/(?:^|\/)(editor|mermaid|katex|markdown|highlight|lightbox|primereact)-[\w-]+\.js$/.test(dep),
+          ),
+      },
       rollupOptions: {
         output: {
           manualChunks(id) {

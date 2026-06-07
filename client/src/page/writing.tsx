@@ -11,7 +11,7 @@ import { client } from "../app/runtime";
 import {Cache} from '../utils/cache';
 import {useSiteConfig} from "../hooks/useSiteConfig";
 import {siteName} from "../utils/constants";
-import mermaid from 'mermaid';
+import { renderMermaidDiagrams } from "../utils/render-mermaid";
 import { MarkdownEditor } from '../components/markdown_editor';
 
 async function publish({
@@ -203,23 +203,7 @@ export function WritingPage({ id }: { id?: number }) {
   }, []);
   const debouncedUpdate = useCallback(
     _.debounce(() => {
-      mermaid.initialize({
-        startOnLoad: false,
-        theme: "default",
-      });
-      mermaid.run({
-        suppressErrors: true,
-        nodes: document.querySelectorAll("pre.mermaid_default")
-      }).then(()=>{
-        mermaid.initialize({
-          startOnLoad: false,
-          theme: "dark",
-        });
-        mermaid.run({
-          suppressErrors: true,
-          nodes: document.querySelectorAll("pre.mermaid_dark")
-        });
-      })
+      void renderMermaidDiagrams();
     }, 100),
     []
   );

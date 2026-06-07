@@ -17,7 +17,7 @@ import { timeago } from "../utils/timeago";
 import { Button } from "../components/button";
 import { FeedTocHeader } from "../components/feed_toc_header";
 import { Tips } from "../components/tips";
-import mermaid from "mermaid";
+import { renderMermaidDiagrams } from "../utils/render-mermaid";
 import { AdjacentSection } from "../components/adjacent_feed.tsx";
 import { stripImageUrlMetadata } from "../utils/image-upload";
 
@@ -111,23 +111,7 @@ export function FeedPage({ id, TOC, clean }: { id: string, TOC: () => JSX.Elemen
     ref.current = id;
   }, [id]);
   useEffect(() => {
-    mermaid.initialize({
-      startOnLoad: false,
-      theme: "default",
-    });
-    mermaid.run({
-      suppressErrors: true,
-      nodes: document.querySelectorAll("pre.mermaid_default")
-    }).then(() => {
-      mermaid.initialize({
-        startOnLoad: false,
-        theme: "dark",
-      });
-      mermaid.run({
-        suppressErrors: true,
-        nodes: document.querySelectorAll("pre.mermaid_dark")
-      });
-    })
+    void renderMermaidDiagrams();
   }, [feed]);
 
   return (
