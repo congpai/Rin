@@ -18,16 +18,6 @@ import { FEED_CARD_VARIANTS, normalizeFeedCardVariant } from "../components/feed
 import { FeedCardPreview } from "../components/feed-card-preview";
 import { FEED_LAYOUT_OPTIONS, normalizeFeedLayout } from "../components/feed-layout-options";
 import { useSiteConfig } from "../hooks/useSiteConfig";
-import {
-  buildMusicItemsFromLegacy,
-  buildMusicPlatformSources,
-  normalizeMusicSource,
-  parseCustomMusicTracks,
-  parseMusicItems,
-  parseMusicPlatformSources,
-  serializeMusicItems,
-  type MusicPlatformSource,
-} from "../utils/music-config";
 import { applyThemeColor, normalizeThemeColor } from "../utils/theme-color";
 import { AISummarySettings } from "./settings-ai";
 import { ItemButton, ItemImageInput, ItemInput, ItemSwitch, ItemTitle, ItemWithUpload } from "./settings-items";
@@ -43,38 +33,8 @@ import {
   updateDraftConfig,
   uploadFavicon,
 } from "./settings-helpers";
-import { SettingsMusicItemsEditor } from "./settings-music";
 
 import "../utils/thumb.css";
-
-// Show the unified `music.items` list in the editor, migrating legacy
-// platform/custom config on the fly when `music.items` has not been set yet.
-// The editor only ever writes back to `music.items`.
-function resolveMusicItemsValue(config: { get: (key: string) => unknown }): string {
-  const raw = config.get("music.items");
-  const existing = parseMusicItems(raw);
-  if (existing.length > 0) {
-    return typeof raw === "string" ? raw : serializeMusicItems(existing);
-  }
-
-  const source = normalizeMusicSource(config.get("music.source"));
-  const id = String(config.get("music.id") ?? "").trim();
-  const primary: MusicPlatformSource | null = id
-    ? {
-        server: String(config.get("music.server") ?? "netease"),
-        type: String(config.get("music.type") ?? "playlist"),
-        id,
-      }
-    : null;
-  const platformSources = buildMusicPlatformSources(
-    primary,
-    parseMusicPlatformSources(config.get("music.sources")),
-  );
-  const customTracks = parseCustomMusicTracks(config.get("music.custom_tracks"));
-  return serializeMusicItems(
-    buildMusicItemsFromLegacy({ source, platformSources, customTracks }),
-  );
-}
 
 const WEBHOOK_METHOD_OPTIONS = ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"].map((value) => ({
   label: value,
@@ -551,87 +511,6 @@ export function Settings() {
             value={String(clientConfig.get("footer") ?? "")}
             onChange={(value) => {
               setConfigValue("client", "footer", value);
-            }}
-          />
-
-          <ItemTitle title={t("settings.music.title")} />
-          <ItemSwitch
-            title={t("settings.music.enabled.title")}
-            description={t("settings.music.enabled.desc")}
-            checked={clientConfig.getBoolean("music.enabled")}
-            onChange={(checked) => {
-              setConfigValue("client", "music.enabled", checked);
-            }}
-          />
-          <div className="w-full">
-            <SettingsCard>
-              <SettingsCardBody>
-                <SettingsCardHeader
-                  title={t("settings.music.items.title")}
-                  description={t("settings.music.items.desc")}
-                />
-                <div className="mt-3">
-                  <SettingsMusicItemsEditor
-                    value={
-                      typeof draft.clientConfig["music.items"] === "string"
-                        ? (draft.clientConfig["music.items"] as string)
-                        : resolveMusicItemsValue(clientConfig)
-                    }
-                    onChange={(value) => {
-                      setConfigValue("client", "music.items", value);
-                    }}
-                    onError={showAlert}
-                  />
-                </div>
-              </SettingsCardBody>
-            </SettingsCard>
-          </div>
-          <ItemSwitch
-            title={t("settings.music.autoplay.title")}
-            description={t("settings.music.autoplay.desc")}
-            checked={clientConfig.getBoolean("music.autoplay")}
-            onChange={(checked) => {
-              setConfigValue("client", "music.autoplay", checked);
-            }}
-          />
-          <ItemInput
-            title={t("settings.music.upstream.title")}
-            description={t("settings.music.upstream.desc")}
-            configKeyTitle="meting.upstream_url"
-            value={String(serverConfig.get("meting.upstream_url") ?? "")}
-            placeholder="https://api.injahow.cn/meting"
-            onChange={(value) => {
-              setConfigValue("server", "meting.upstream_url", value);
-            }}
-          />
-          <ItemInput
-            title={t("settings.music.token.title")}
-            description={t("settings.music.token.desc")}
-            configKeyTitle="meting.token"
-            value={String(serverConfig.get("meting.token") ?? "")}
-            placeholder="token"
-            onChange={(value) => {
-              setConfigValue("server", "meting.token", value);
-            }}
-          />
-          <ItemInput
-            title={t("settings.music.cookie_netease.title")}
-            description={t("settings.music.cookie_netease.desc")}
-            configKeyTitle="meting.cookie_netease"
-            value={String(serverConfig.get("meting.cookie_netease") ?? "")}
-            placeholder={t("settings.music.cookie_netease.label")}
-            onChange={(value) => {
-              setConfigValue("server", "meting.cookie_netease", value);
-            }}
-          />
-          <ItemInput
-            title={t("settings.music.cookie_tencent.title")}
-            description={t("settings.music.cookie_tencent.desc")}
-            configKeyTitle="meting.cookie_tencent"
-            value={String(serverConfig.get("meting.cookie_tencent") ?? "")}
-            placeholder={t("settings.music.cookie_tencent.label")}
-            onChange={(value) => {
-              setConfigValue("server", "meting.cookie_tencent", value);
             }}
           />
 

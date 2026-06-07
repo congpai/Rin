@@ -22,17 +22,6 @@ export const CLIENT_CONFIG_DEFAULTS = new Map(
     "site.avatar_hover": "",
     "site.avatar_hover_label": "",
     "site.page_size": 5,
-    "music.enabled": false,
-    // Unified, ordered playlist mixing platform sources and custom MP3 tracks.
-    // Legacy keys below are kept for one-time migration of existing configs.
-    "music.items": "[]",
-    "music.source": "platform",
-    "music.server": "netease",
-    "music.type": "playlist",
-    "music.id": "",
-    "music.sources": "[]",
-    "music.custom_tracks": "[]",
-    "music.autoplay": false,
   }),
 );
 
@@ -45,10 +34,6 @@ export const SERVER_CONFIG_DEFAULTS = new Map(
     "webhook.content_type": "application/json",
     "webhook.headers": "{}",
     "webhook.body_template": "{\"content\":\"{{message}}\"}",
-    "meting.token": "token",
-    "meting.upstream_url": "",
-    "meting.cookie_netease": "",
-    "meting.cookie_tencent": "",
   }),
 );
 

@@ -5,7 +5,6 @@ import {
   WEBHOOK_URL_KEY,
 } from "@rin/config";
 import { getFrontendAIEnabled, readAIConfigFromMap } from "../utils/db-config";
-import { sanitizeMetingUpstreamInput } from "../utils/meting-helpers";
 
 type ConfigMapLike = {
   all(): Promise<Map<string, unknown>>;
@@ -167,10 +166,7 @@ export async function persistRegularConfig(
   updates: Record<string, unknown>,
 ) {
   for (const key in updates) {
-    let value = updates[key];
-    if (key === "meting.upstream_url" && typeof value === "string") {
-      value = sanitizeMetingUpstreamInput(value);
-    }
+    const value = updates[key];
     await config.set(key, value, false);
   }
   await config.save();

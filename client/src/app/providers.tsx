@@ -4,8 +4,6 @@ import type { ConfigWrapper } from "@rin/config";
 import type { Profile } from "../state/profile";
 import { ClientConfigContext } from "../state/config";
 import { ProfileContext } from "../state/profile";
-import { GlobalMusicPlayer } from "../components/global-music-player";
-import "../components/global-music-player.css";
 
 export function AppProviders({
   children,
@@ -23,7 +21,6 @@ export function AppProviders({
           <link rel="icon" href="/favicon.ico" />
         </Helmet>
         {children}
-        <GlobalMusicPlayer />
       </ProfileContext.Provider>
     </ClientConfigContext.Provider>
   );
