@@ -609,7 +609,11 @@
       "preview_alt": "Image preview",
       "url_placeholder": "Enter an image URL, or upload an image"
     },
-    "title": "Upload"
+    "title": "Upload",
+    "video": {
+      "select": "Add video",
+      "hint": "Upload video (mp4/webm, up to 50MB)"
+    }
   },
   "uploading": "Uploading...",
   "url": "Site URL",

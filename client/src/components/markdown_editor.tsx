@@ -7,6 +7,7 @@ import { FlatInset, FlatTabButton } from "@rin/ui";
 import { useAlert } from "./dialog";
 import { useColorMode } from "../utils/darkModeUtils";
 import { buildMarkdownImage, getImageUploadErrorMessage, isImageFile, uploadImageFile } from "../utils/image-upload";
+import { buildMarkdownVideo, getVideoUploadErrorMessage, isVideoFile, uploadVideoFile } from "../utils/video-upload";
 import { Markdown } from "./markdown";
 
 
@@ -37,7 +38,9 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
   const isComposingRef = useRef(false);
   const [preview, setPreview] = useState<'edit' | 'preview' | 'comparison'>('edit');
   const [uploading, setUploading] = useState(false);
+  const [uploadingVideo, setUploadingVideo] = useState(false);
   const uploadRef = useRef<HTMLInputElement>(null);
+  const videoUploadRef = useRef<HTMLInputElement>(null);
   const { showAlert, AlertUI } = useAlert();
 
   const insertImages = useCallback(async (files: File[]) => {
@@ -98,6 +101,64 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
     void insertImages(Array.from(selected)).finally(() => {
       if (uploadRef.current) {
         uploadRef.current.value = "";
+      }
+    });
+  };
+
+  const insertVideos = useCallback(async (files: File[]) => {
+    const videoFiles = files.filter(isVideoFile);
+    if (videoFiles.length === 0) {
+      return;
+    }
+
+    const editorInstance = editorRef.current;
+    if (!editorInstance) {
+      return;
+    }
+
+    const selection = editorInstance.getSelection();
+    if (!selection) {
+      return;
+    }
+
+    let insertRange: IRange = selection;
+
+    setUploadingVideo(true);
+    try {
+      for (const file of videoFiles) {
+        const model = editorInstance.getModel();
+        if (!model) {
+          break;
+        }
+
+        try {
+          const result = await uploadVideoFile(file);
+          const text = buildMarkdownVideo(result.url);
+          editorInstance.executeEdits("insert-video", [{
+            range: insertRange,
+            text,
+            forceMoveMarkers: true,
+          }]);
+          insertRange = rangeAfterInsert(model, insertRange, text);
+          setContent(editorInstance.getValue());
+        } catch (error) {
+          console.error(error);
+          showAlert(getVideoUploadErrorMessage(error));
+        }
+      }
+    } finally {
+      setUploadingVideo(false);
+    }
+  }, [setContent, showAlert]);
+
+  const handleVideoUploadChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selected = event.currentTarget.files;
+    if (!selected || selected.length === 0) {
+      return;
+    }
+    void insertVideos(Array.from(selected)).finally(() => {
+      if (videoUploadRef.current) {
+        videoUploadRef.current.value = "";
       }
     });
   };
@@ -237,7 +298,25 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
           <i className="ri-image-add-line" />
           <span>{t("upload.image.multi_select")}</span>
         </button>
-        {uploading &&
+        <input
+          ref={videoUploadRef}
+          onChange={handleVideoUploadChange}
+          className="hidden"
+          type="file"
+          multiple
+          accept="video/mp4,video/webm,video/ogg,video/quicktime,.mp4,.webm,.ogg,.mov,.m4v"
+        />
+        <button
+          type="button"
+          onClick={() => videoUploadRef.current?.click()}
+          disabled={uploadingVideo}
+          title={t("upload.video.hint")}
+          className="inline-flex items-center gap-2 rounded-xl border border-black/10 bg-w px-3 py-2 text-sm t-primary transition-colors hover:border-black/20 disabled:opacity-50 dark:border-white/10 dark:hover:border-white/20"
+        >
+          <i className="ri-video-add-line" />
+          <span>{t("upload.video.select")}</span>
+        </button>
+        {(uploading || uploadingVideo) &&
           <div className="flex flex-row items-center space-x-2">
             <Loading type="spin" color="#FC466B" height={16} width={16} />
             <span className="text-sm text-neutral-500">{t('uploading')}</span>

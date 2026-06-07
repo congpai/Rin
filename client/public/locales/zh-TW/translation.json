@@ -603,7 +603,11 @@
       "preview_alt": "圖片預覽",
       "url_placeholder": "填寫圖片 URL，或上傳一張圖片"
     },
-    "title": "上傳"
+    "title": "上傳",
+    "video": {
+      "select": "新增影片",
+      "hint": "上傳影片（mp4/webm 等，最大 50MB）"
+    }
   },
   "uploading": "上傳中",
   "url": "網站 URL",

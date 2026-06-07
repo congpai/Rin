@@ -594,7 +594,11 @@
       "preview_alt": "画像プレビュー",
       "url_placeholder": "画像 URL を入力するか、画像をアップロードしてください"
     },
-    "title": "アップロード"
+    "title": "アップロード",
+    "video": {
+      "select": "動画を追加",
+      "hint": "動画をアップロード（mp4/webm、最大50MB）"
+    }
   },
   "uploading": "アップロード中",
   "url": "サイトURL",

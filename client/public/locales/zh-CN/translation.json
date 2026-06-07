@@ -609,7 +609,11 @@
       "preview_alt": "图片预览",
       "url_placeholder": "填写图片 URL，或上传一张图片"
     },
-    "title": "上传"
+    "title": "上传",
+    "video": {
+      "select": "添加视频",
+      "hint": "上传视频（mp4/webm 等，最大 50MB）"
+    }
   },
   "uploading": "上传中",
   "url": "站点 URL",
