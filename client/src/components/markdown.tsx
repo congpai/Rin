@@ -453,6 +453,15 @@ export function Markdown({ content }: { content: string }) {
         div({ children, node, ...props }) {
           return <div {...props}>{children}</div>;
         },
+        iframe({ node, ...props }) {
+          return (
+            <iframe
+              {...props}
+              className={`max-w-full ${props.className || ""}`.trim()}
+              style={{ maxWidth: "100%", ...(props.style as React.CSSProperties) }}
+            />
+          );
+        },
       }}
     />), [content, colorMode, show])
 

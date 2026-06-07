@@ -253,7 +253,8 @@
     "total$count_one": "{{count}} moment in total",
     "total$count_other": "{{count}} moments in total",
     "private": "Only visible to me (hidden from visitors)",
-    "private_badge": "Private"
+    "private_badge": "Private",
+    "private_filter": "Private only"
   },
   "next": "Next Page",
   "no_more": "No More",
@@ -829,6 +830,12 @@
       "code_block": "Code block",
       "link": "Link",
       "link_text": "link text"
+    },
+    "images": {
+      "reorder_hint": "Drag thumbnails to reorder",
+      "cancel": "Cancel",
+      "insert": "Insert {{count}}",
+      "remove": "Remove"
     }
   }
 }

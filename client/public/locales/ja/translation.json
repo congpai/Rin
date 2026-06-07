@@ -238,7 +238,8 @@
     "total$count_one": "{{count}} 件の動態",
     "total$count_other": "{{count}} 件の動態",
     "private": "自分のみ表示（訪問者には非公開）",
-    "private_badge": "非公開"
+    "private_badge": "非公開",
+    "private_filter": "非公開のみ"
   },
   "next": "次のページ",
   "no_more": "もうない",
@@ -814,6 +815,12 @@
       "code_block": "コードブロック",
       "link": "リンク",
       "link_text": "リンクテキスト"
+    },
+    "images": {
+      "reorder_hint": "サムネイルをドラッグして並び替え",
+      "cancel": "キャンセル",
+      "insert": "{{count}} 枚を挿入",
+      "remove": "削除"
     }
   }
 }

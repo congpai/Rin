@@ -39,6 +39,8 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
   const [preview, setPreview] = useState<'edit' | 'preview' | 'comparison'>('edit');
   const [uploading, setUploading] = useState(false);
   const [uploadingVideo, setUploadingVideo] = useState(false);
+  const [pendingImages, setPendingImages] = useState<{ id: string; file: File; url: string }[]>([]);
+  const dragIndexRef = useRef<number | null>(null);
   const uploadRef = useRef<HTMLInputElement>(null);
   const videoUploadRef = useRef<HTMLInputElement>(null);
   const { showAlert, AlertUI } = useAlert();
@@ -93,17 +95,82 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
     }
   }, [setContent, showAlert, t]);
 
+  // The toolbar image button stages the selected images so they can be
+  // previewed and reordered (drag) before being uploaded/inserted in order.
+  const stageImages = useCallback((files: File[]) => {
+    const imageFiles = files.filter(isImageFile);
+    if (imageFiles.length === 0) {
+      return;
+    }
+    setPendingImages((prev) => [
+      ...prev,
+      ...imageFiles.map((file) => ({
+        id: `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+        file,
+        url: URL.createObjectURL(file),
+      })),
+    ]);
+  }, []);
+
   const handleUploadChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const selected = event.currentTarget.files;
     if (!selected || selected.length === 0) {
       return;
     }
-    void insertImages(Array.from(selected)).finally(() => {
-      if (uploadRef.current) {
-        uploadRef.current.value = "";
-      }
-    });
+    stageImages(Array.from(selected));
+    if (uploadRef.current) {
+      uploadRef.current.value = "";
+    }
   };
+
+  const removePendingImage = useCallback((id: string) => {
+    setPendingImages((prev) => {
+      const target = prev.find((item) => item.id === id);
+      if (target) {
+        URL.revokeObjectURL(target.url);
+      }
+      return prev.filter((item) => item.id !== id);
+    });
+  }, []);
+
+  const reorderPendingImages = useCallback((from: number, to: number) => {
+    if (from === to) return;
+    setPendingImages((prev) => {
+      if (from < 0 || from >= prev.length || to < 0 || to >= prev.length) {
+        return prev;
+      }
+      const next = [...prev];
+      const [moved] = next.splice(from, 1);
+      next.splice(to, 0, moved);
+      return next;
+    });
+  }, []);
+
+  const clearPendingImages = useCallback(() => {
+    setPendingImages((prev) => {
+      prev.forEach((item) => URL.revokeObjectURL(item.url));
+      return [];
+    });
+  }, []);
+
+  const confirmPendingImages = useCallback(async () => {
+    const files = pendingImages.map((item) => item.file);
+    if (files.length === 0) {
+      return;
+    }
+    await insertImages(files);
+    clearPendingImages();
+  }, [pendingImages, insertImages, clearPendingImages]);
+
+  useEffect(() => {
+    // Revoke any remaining object URLs on unmount.
+    return () => {
+      setPendingImages((prev) => {
+        prev.forEach((item) => URL.revokeObjectURL(item.url));
+        return prev;
+      });
+    };
+  }, []);
 
   const insertVideos = useCallback(async (files: File[]) => {
     const videoFiles = files.filter(isVideoFile);
@@ -337,6 +404,60 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
               <i className={button.icon} />
             </button>
           ))}
+        </FlatInset>
+      )}
+      {pendingImages.length > 0 && (
+        <FlatInset className="border-0 border-b border-black/10 rounded-none bg-transparent p-3 dark:border-white/10">
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <span className="text-sm t-secondary">{t("editor.images.reorder_hint")}</span>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={clearPendingImages}
+                disabled={uploading}
+                className="rounded-lg border border-black/10 px-3 py-1.5 text-sm t-primary transition-colors hover:border-black/20 disabled:opacity-50 dark:border-white/10 dark:hover:border-white/20"
+              >
+                {t("editor.images.cancel")}
+              </button>
+              <button
+                type="button"
+                onClick={() => void confirmPendingImages()}
+                disabled={uploading}
+                className="rounded-lg bg-theme px-3 py-1.5 text-sm text-white disabled:opacity-50"
+              >
+                {uploading ? t("uploading") : t("editor.images.insert", { count: pendingImages.length })}
+              </button>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {pendingImages.map((item, index) => (
+              <div
+                key={item.id}
+                draggable
+                onDragStart={() => { dragIndexRef.current = index; }}
+                onDragOver={(e) => e.preventDefault()}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  const from = dragIndexRef.current;
+                  if (from !== null) reorderPendingImages(from, index);
+                  dragIndexRef.current = null;
+                }}
+                className="group relative h-20 w-20 cursor-move overflow-hidden rounded-lg border border-black/10 dark:border-white/10"
+                title={item.file.name}
+              >
+                <img src={item.url} alt="" className="h-full w-full object-cover" />
+                <span className="absolute left-1 top-1 rounded bg-black/60 px-1 text-[10px] leading-tight text-white">{index + 1}</span>
+                <button
+                  type="button"
+                  onClick={() => removePendingImage(item.id)}
+                  aria-label={t("editor.images.remove")}
+                  className="absolute right-1 top-1 hidden h-5 w-5 items-center justify-center rounded-full bg-black/60 text-white group-hover:flex"
+                >
+                  <i className="ri-close-line text-xs" />
+                </button>
+              </div>
+            ))}
+          </div>
         </FlatInset>
       )}
       <div className={`grid grid-cols-1 gap-0 sm:gap-4 ${preview === 'comparison' ? "lg:grid-cols-2" : ""}`}>

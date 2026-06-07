@@ -253,7 +253,8 @@
     "total$count_one": "{{count}} 条动态",
     "total$count_other": "{{count}} 条动态",
     "private": "仅自己可看（公开访客看不到）",
-    "private_badge": "仅自己可看"
+    "private_badge": "仅自己可看",
+    "private_filter": "仅自己可看"
   },
   "next": "下一页",
   "no_more": "没有更多了",
@@ -829,6 +830,12 @@
       "code_block": "代码块",
       "link": "链接",
       "link_text": "链接文字"
+    },
+    "images": {
+      "reorder_hint": "拖动缩略图可调整顺序",
+      "cancel": "取消",
+      "insert": "插入 {{count}} 张",
+      "remove": "移除"
     }
   }
 }

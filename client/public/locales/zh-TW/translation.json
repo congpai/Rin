@@ -247,7 +247,8 @@
     "total$count_one": "{{count}} 條動態",
     "total$count_other": "{{count}} 條動態",
     "private": "僅自己可看（公開訪客看不到）",
-    "private_badge": "僅自己可看"
+    "private_badge": "僅自己可看",
+    "private_filter": "僅自己可看"
   },
   "next": "下一頁",
   "no_more": "沒有更多了",
@@ -823,6 +824,12 @@
       "code_block": "程式碼區塊",
       "link": "連結",
       "link_text": "連結文字"
+    },
+    "images": {
+      "reorder_hint": "拖動縮圖可調整順序",
+      "cancel": "取消",
+      "insert": "插入 {{count}} 張",
+      "remove": "移除"
     }
   }
 }

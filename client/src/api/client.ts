@@ -484,11 +484,12 @@ class MomentsAPI {
   constructor(private http: HttpClient) {}
 
   // GET /api/moments
-  async list(params?: { page?: number; limit?: number }): Promise<ApiResponse<{ data: Moment[]; hasNext: boolean }>> {
+  async list(params?: { page?: number; limit?: number; filter?: 'private' }): Promise<ApiResponse<{ data: Moment[]; hasNext: boolean }>> {
     const searchParams = new URLSearchParams();
     if (params?.page) searchParams.set("page", params.page.toString());
     if (params?.limit) searchParams.set("limit", params.limit.toString());
-    
+    if (params?.filter) searchParams.set("filter", params.filter);
+
     const query = searchParams.toString();
     return this.http.get<{ data: Moment[]; hasNext: boolean }>(`/api/moments${query ? `?${query}` : ""}`);
   }

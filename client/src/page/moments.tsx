@@ -45,6 +45,7 @@ export function MomentsPage() {
     const [content, setContent] = useState("")
     const [tags, setTags] = useState("")
     const [isPrivate, setIsPrivate] = useState(false)
+    const [privateOnly, setPrivateOnly] = useState(false)
     const [loading, setLoading] = useState(false)
     const [isModalOpen, setIsModalOpen] = useState(false)
     const [editingMoment, setEditingMoment] = useState<Moment | null>(null)
@@ -75,7 +76,8 @@ export function MomentsPage() {
         
         client.moments.list({
             page: page,
-            limit: limit
+            limit: limit,
+            filter: privateOnly ? 'private' : undefined
         }).then(({ data }) => {
             if (data) {
                 setLength(data.data.length)
@@ -186,11 +188,11 @@ export function MomentsPage() {
     }
     
     useEffect(() => {
-        const key = `${limit}`
+        const key = `${limit}_${privateOnly}`
         if (ref.current === key) return
         fetchMoments(1, false)
         ref.current = key
-    }, [limit])
+    }, [limit, privateOnly])
 
     useEffect(() => {
         function syncHashTarget() {
@@ -251,12 +253,21 @@ export function MomentsPage() {
                                 {t('moments.total$count', { count: length })}
                             </p>
                             {profile?.permission && (
-                                <button 
-                                    onClick={openCreateModal}
-                                    className="text-sm font-normal rounded-full px-4 py-2 text-white bg-theme"
-                                >
-                                    {t('publish.title')}
-                                </button>
+                                <div className="flex items-center gap-2">
+                                    <button
+                                        onClick={() => setPrivateOnly((v) => !v)}
+                                        className={`inline-flex items-center gap-1 text-sm font-normal rounded-full px-4 py-2 transition-colors ${privateOnly ? "bg-theme text-white" : "bg-secondary t-secondary hover:bg-button"}`}
+                                    >
+                                        <i className="ri-lock-line" />
+                                        {t('moments.private_filter')}
+                                    </button>
+                                    <button
+                                        onClick={openCreateModal}
+                                        className="text-sm font-normal rounded-full px-4 py-2 text-white bg-theme"
+                                    >
+                                        {t('publish.title')}
+                                    </button>
+                                </div>
                             )}
                         </div>
                     </div>

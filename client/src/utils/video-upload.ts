@@ -50,7 +50,8 @@ export async function uploadVideoFile(
 }
 
 // Markdown renders raw HTML (rehypeRaw), so a <video> tag plays inline.
-// Kept on its own lines so it is treated as a block-level element.
+// Surrounded by blank lines so it becomes a standalone block — any caption
+// text typed before it stays above the video instead of merging into it.
 export function buildMarkdownVideo(url: string) {
-  return `\n<video controls preload="metadata" src="${url}" style="max-width:100%"></video>\n`;
+  return `\n\n<video controls preload="metadata" src="${url}" style="max-width:100%"></video>\n\n`;
 }

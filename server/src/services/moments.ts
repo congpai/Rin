@@ -28,13 +28,20 @@ export function MomentsService(): Hono {
         const admin = c.get('admin');
         const page = c.req.query('page');
         const limit = c.req.query('limit');
+        const filter = c.req.query('filter');
 
         const page_num = (page ? parseInt(page) > 0 ? parseInt(page) : 1 : 1) - 1;
         const limit_num = limit ? parseInt(limit) > 50 ? 50 : parseInt(limit) : 20;
         // Private moments are only visible to the admin; key the cache by viewer
-        // role so the public cache never contains private items.
-        const visibilityFilter = admin ? undefined : eq(moments.private, 0);
-        const cacheKey = `moments_v2_${admin ? 'admin' : 'pub'}_${page_num}_${limit_num}`;
+        // role so the public cache never contains private items. Admins can also
+        // filter to show only their private ("仅自己可看") moments.
+        const privateOnly = admin && filter === 'private';
+        const visibilityFilter = privateOnly
+            ? eq(moments.private, 1)
+            : admin
+                ? undefined
+                : eq(moments.private, 0);
+        const cacheKey = `moments_v2_${admin ? (privateOnly ? 'admin_private' : 'admin') : 'pub'}_${page_num}_${limit_num}`;
         const cached = await profileAsync(c, 'moments_list_cache_get', () => cache.get(cacheKey));
 
         if (cached) {
