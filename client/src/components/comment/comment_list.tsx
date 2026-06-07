@@ -192,6 +192,7 @@ function CommentTailFooter({
     onApprove,
     onDelete,
     onRefresh,
+    onReplyClick,
 }: {
     commentId: number;
     createdAt: Date | string;
@@ -201,6 +202,7 @@ function CommentTailFooter({
     onApprove?: (id: number) => Promise<{ error?: string }>;
     onDelete: (id: number) => Promise<{ error?: string }>;
     onRefresh: () => void;
+    onReplyClick?: () => void;
 }) {
     const { t } = useTranslation();
     const { showConfirm, ConfirmUI } = useConfirm();
@@ -217,6 +219,15 @@ function CommentTailFooter({
                 <span title={new Date(createdAt).toLocaleString()} className="whitespace-nowrap">
                     {timeago(createdAt)}
                 </span>
+                {onReplyClick ? (
+                    <button
+                        type="button"
+                        className="whitespace-nowrap transition-colors hover:text-theme"
+                        onClick={onReplyClick}
+                    >
+                        {t("comment.reply")}
+                    </button>
+                ) : null}
             </div>
             <div className="flex-1" />
             <div className="flex shrink-0 items-center gap-1">
@@ -317,21 +328,11 @@ function CommentReplyTail({
                             <ClickableUser
                                 name={name}
                                 avatar={commentAvatar(reply, defaultAvatar)}
-                                onClick={
-                                    onReply
-                                        ? () => onReply(buildReplyTarget(root, reply, anonymous))
-                                        : undefined
-                                }
                             />
                             <span className="t-secondary"> {t("comment.reply_action")} </span>
                             <ClickableUser
                                 name={targetName}
                                 avatar={commentAvatar(target, defaultAvatar)}
-                                onClick={
-                                    onReply
-                                        ? () => onReply(buildReplyTarget(root, target, anonymous))
-                                        : undefined
-                                }
                             />
                             <span className="t-secondary">：</span>
                             {text ? (
@@ -348,6 +349,11 @@ function CommentReplyTail({
                             onApprove={onApprove}
                             onDelete={onDelete}
                             onRefresh={onRefresh}
+                            onReplyClick={
+                                onReply
+                                    ? () => onReply(buildReplyTarget(root, reply, anonymous))
+                                    : undefined
+                            }
                         />
                     </div>
                 );
