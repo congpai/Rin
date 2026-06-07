@@ -50,7 +50,7 @@ export function CommentService(): Hono {
             columns: { feedId: false, userId: false },
             with: {
                 user: {
-                    columns: { id: true, username: true, avatar: true, permission: true }
+                    columns: { id: true, username: true, avatar: true, website: true, permission: true }
                 }
             },
             orderBy: [desc(comments.createdAt)]

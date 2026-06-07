@@ -631,7 +631,11 @@
       "empty_username": "Username cannot be empty",
       "update_failed": "Update failed",
       "network": "Network error, please try again"
-    }
+    },
+    "email": "Email",
+    "email_placeholder": "Your email (kept private)",
+    "website": "Website",
+    "website_placeholder": "https://example.com (linked from your name)"
   },
   "health": {
     "generated_at": "Last checked: {{date}}",

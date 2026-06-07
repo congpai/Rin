@@ -631,7 +631,11 @@
       "empty_username": "昵称不能为空",
       "update_failed": "更新失败",
       "network": "网络错误，请重试"
-    }
+    },
+    "email": "邮箱",
+    "email_placeholder": "请输入邮箱（不会公开显示）",
+    "website": "网站",
+    "website_placeholder": "https://example.com（将显示在你的昵称上）"
   },
   "health": {
     "generated_at": "最近检查时间：{{date}}",

@@ -20,6 +20,7 @@ export type CommentRecord = {
         id: number;
         username: string;
         avatar: string | null;
+        website?: string | null;
         permission: number | null;
     } | null;
     guestName?: string;
@@ -115,8 +116,24 @@ function CommentUser({
     );
 }
 
+function normalizeWebsiteUrl(raw?: string | null): string | undefined {
+    const value = (raw ?? "").trim();
+    if (!value) {
+        return undefined;
+    }
+    if (/^https?:\/\//i.test(value)) {
+        return value;
+    }
+    if (value.startsWith("//")) {
+        return `https:${value}`;
+    }
+    // Bare domains (e.g. "erdaliu.com") and anything without an http(s) scheme
+    // get https:// prefixed so the <a> isn't treated as a relative path.
+    return `https://${value}`;
+}
+
 function commentWebsite(comment: CommentRecord): string | undefined {
-    return comment.guestWebsite?.trim() || undefined;
+    return normalizeWebsiteUrl(comment.user?.website || comment.guestWebsite);
 }
 
 function CommentModerationActions({
@@ -410,9 +427,9 @@ function CommentThread({
                 }`}
             >
                 <div className="flex flex-row items-center gap-2">
-                    {root.guestWebsite ? (
+                    {commentWebsite(root) ? (
                         <a
-                            href={root.guestWebsite}
+                            href={commentWebsite(root)}
                             target="_blank"
                             rel="noopener noreferrer"
                             className="text-base font-bold text-theme hover:underline"

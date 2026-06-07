@@ -616,7 +616,11 @@
       "empty_username": "ユーザー名は空にできません",
       "update_failed": "更新に失敗しました",
       "network": "ネットワークエラー、もう一度お試しください"
-    }
+    },
+    "email": "メール",
+    "email_placeholder": "メールアドレス（非公開）",
+    "website": "ウェブサイト",
+    "website_placeholder": "https://example.com（名前にリンクされます）"
   },
   "health": {
     "generated_at": "最終確認: {{date}}",

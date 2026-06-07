@@ -107,7 +107,7 @@ export function MomentCommentService(): Hono {
 
                     user: {
 
-                        columns: { id: true, username: true, avatar: true, permission: true },
+                        columns: { id: true, username: true, avatar: true, website: true, permission: true },
 
                     },
 

@@ -31,6 +31,8 @@ export function createMockDB() {
             avatar TEXT,
             openid TEXT NOT NULL,
             password TEXT,
+            email TEXT DEFAULT '',
+            website TEXT DEFAULT '',
             permission INTEGER DEFAULT 0,
             created_at INTEGER DEFAULT (unixepoch()),
             updated_at INTEGER DEFAULT (unixepoch())

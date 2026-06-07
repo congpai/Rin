@@ -164,6 +164,8 @@ export function UserService(): Hono {
             id: user.id,
             username: user.username,
             avatar: user.avatar,
+            email: user.email ?? "",
+            website: user.website ?? "",
             permission: user.permission === 1,
             createdAt: user.createdAt,
             updatedAt: user.updatedAt,
@@ -195,15 +197,27 @@ export function UserService(): Hono {
             throw new ForbiddenError('Authentication required');
         }
 
-        const { username, avatar } = body as { username?: string; avatar?: string };
+        const { username, avatar, email, website } = body as {
+            username?: string;
+            avatar?: string;
+            email?: string;
+            website?: string;
+        };
 
-        if (!username && !avatar) {
-            throw new BadRequestError('At least one field (username or avatar) is required');
+        if (
+            username === undefined &&
+            avatar === undefined &&
+            email === undefined &&
+            website === undefined
+        ) {
+            throw new BadRequestError('At least one field is required');
         }
 
-        const updateData: { username?: string; avatar?: string } = {};
+        const updateData: { username?: string; avatar?: string; email?: string; website?: string } = {};
         if (username) updateData.username = username;
         if (avatar) updateData.avatar = avatar;
+        if (email !== undefined) updateData.email = email.trim();
+        if (website !== undefined) updateData.website = website.trim();
 
         await profileAsync(c, 'user_profile_update', () => db.update(users).set(updateData).where(eq(users.id, uid)));
 

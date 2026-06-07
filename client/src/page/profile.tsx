@@ -13,6 +13,8 @@ export function ProfilePage() {
     const [, setLocation] = useLocation();
     const [username, setUsername] = useState('');
     const [avatar, setAvatar] = useState('');
+    const [email, setEmail] = useState('');
+    const [website, setWebsite] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
@@ -31,6 +33,8 @@ export function ProfilePage() {
         // Load current profile data
         setUsername(profile.name || '');
         setAvatar(profile.avatar || '');
+        setEmail(profile.email || '');
+        setWebsite(profile.website || '');
     }, [profile, setLocation]);
 
     const handleSubmit = async () => {
@@ -44,9 +48,11 @@ export function ProfilePage() {
         setSuccess('');
 
         try {
-            const { error: apiError } = await client.user.updateProfile({ 
+            const { error: apiError } = await client.user.updateProfile({
                 username: username.trim(),
-                avatar: avatar || null
+                avatar: avatar || null,
+                email: email.trim(),
+                website: website.trim()
             });
 
             if (apiError) {
@@ -122,6 +128,28 @@ export function ProfilePage() {
                             value={username}
                             setValue={setUsername}
                             placeholder={t('profile.username_placeholder')}
+                            disabled={isLoading}
+                        />
+                    </div>
+
+                    {/* Email section */}
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium t-secondary">{t('profile.email')}</label>
+                        <Input
+                            value={email}
+                            setValue={setEmail}
+                            placeholder={t('profile.email_placeholder')}
+                            disabled={isLoading}
+                        />
+                    </div>
+
+                    {/* Website section */}
+                    <div className="space-y-2">
+                        <label className="text-sm font-medium t-secondary">{t('profile.website')}</label>
+                        <Input
+                            value={website}
+                            setValue={setWebsite}
+                            placeholder={t('profile.website_placeholder')}
                             disabled={isLoading}
                         />
                     </div>

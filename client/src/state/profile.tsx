@@ -4,7 +4,9 @@ export type Profile = {
   id: number;
   avatar: string;
   permission: boolean;
-  name: string
+  name: string;
+  email?: string;
+  website?: string;
 }
 
 export const ProfileContext = createContext<Profile | undefined | null>(undefined);

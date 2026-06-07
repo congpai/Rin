@@ -115,12 +115,16 @@ export interface UserProfile {
   id: number;
   username: string;
   avatar: string | null;
+  email?: string;
+  website?: string;
   permission: boolean;
 }
 
 export interface UpdateProfileRequest {
   username?: string;
   avatar?: string | null;
+  email?: string;
+  website?: string;
 }
 
 // ============================================================================
@@ -174,6 +178,7 @@ export interface Comment {
     id: number;
     username: string;
     avatar: string | null;
+    website?: string | null;
     permission: number | null;
   } | null;
   /** 游客评论的昵称 */

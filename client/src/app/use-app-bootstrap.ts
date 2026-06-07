@@ -77,6 +77,8 @@ export function useAppBootstrap() {
           avatar: data.avatar || "",
           permission: data.permission,
           name: data.username,
+          email: data.email ?? "",
+          website: data.website ?? "",
         });
       } else if (error) {
         setProfile(null);

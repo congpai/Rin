@@ -625,7 +625,11 @@
       "empty_username": "暱稱不能為空",
       "update_failed": "更新失敗",
       "network": "網路錯誤，請重試"
-    }
+    },
+    "email": "信箱",
+    "email_placeholder": "請輸入信箱（不會公開顯示）",
+    "website": "網站",
+    "website_placeholder": "https://example.com（將顯示在你的暱稱上）"
   },
   "health": {
     "generated_at": "最近檢查時間：{{date}}",
