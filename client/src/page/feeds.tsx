@@ -73,11 +73,15 @@ export function FeedsPage() {
     return (
         <>
             <Helmet>
-                <title>{`${t('article.title')} - ${siteConfig.name}`}</title>
+                <title>{`${siteConfig.name} - ${siteConfig.description || t('article.title')}`}</title>
+                {siteConfig.description ? (
+                    <meta name="description" content={siteConfig.description} />
+                ) : null}
                 <meta property="og:site_name" content={siteName} />
-                <meta property="og:title" content={t('article.title')} />
+                <meta property="og:title" content={siteConfig.name} />
+                <meta property="og:description" content={siteConfig.description || ""} />
                 <meta property="og:image" content={siteConfig.avatar} />
-                <meta property="og:type" content="article" />
+                <meta property="og:type" content="website" />
                 <meta property="og:url" content={document.URL} />
             </Helmet>
             <main className="w-full flex flex-col justify-center items-center mb-8">

@@ -273,6 +273,16 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
     ed.focus();
   }, [setContent]);
 
+  const insertBlock = useCallback((text: string) => {
+    const ed = editorRef.current;
+    const model = ed?.getModel();
+    const selection = ed?.getSelection();
+    if (!ed || !model || !selection) return;
+    ed.executeEdits("format-block", [{ range: selection, text, forceMoveMarkers: true }]);
+    setContent(ed.getValue());
+    ed.focus();
+  }, [setContent]);
+
   const applyCodeBlock = useCallback(() => {
     const ed = editorRef.current;
     const model = ed?.getModel();
@@ -285,15 +295,21 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
     ed.focus();
   }, [setContent]);
 
+  const tableTemplate = `\n\n| ${t("editor.toolbar.table_col", { n: 1 })} | ${t("editor.toolbar.table_col", { n: 2 })} |\n| --- | --- |\n| ${t("editor.toolbar.table_cell")} | ${t("editor.toolbar.table_cell")} |\n\n`;
+
   const formatButtons = [
     { icon: "ri-h-2", title: t("editor.toolbar.heading"), run: () => applyLinePrefix("## ") },
     { icon: "ri-bold", title: t("editor.toolbar.bold"), run: () => applyWrap("**", "**", t("editor.toolbar.bold_text")) },
     { icon: "ri-italic", title: t("editor.toolbar.italic"), run: () => applyWrap("*", "*", t("editor.toolbar.italic_text")) },
+    { icon: "ri-strikethrough", title: t("editor.toolbar.strikethrough"), run: () => applyWrap("~~", "~~", t("editor.toolbar.strikethrough_text")) },
     { icon: "ri-double-quotes-l", title: t("editor.toolbar.quote"), run: () => applyLinePrefix("> ") },
     { icon: "ri-list-unordered", title: t("editor.toolbar.list"), run: () => applyLinePrefix("- ") },
+    { icon: "ri-list-check-2", title: t("editor.toolbar.task_list"), run: () => applyLinePrefix("- [ ] ") },
     { icon: "ri-code-line", title: t("editor.toolbar.inline_code"), run: () => applyWrap("`", "`", "code") },
     { icon: "ri-code-box-line", title: t("editor.toolbar.code_block"), run: applyCodeBlock },
     { icon: "ri-link", title: t("editor.toolbar.link"), run: () => applyWrap("[", "](https://)", t("editor.toolbar.link_text")) },
+    { icon: "ri-table-2", title: t("editor.toolbar.table"), run: () => insertBlock(tableTemplate) },
+    { icon: "ri-separator", title: t("editor.toolbar.divider"), run: () => insertBlock("\n\n---\n\n") },
   ];
 
   /* ---------------- Monaco Mount & IME Optimization ---------------- */

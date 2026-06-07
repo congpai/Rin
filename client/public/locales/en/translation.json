@@ -829,7 +829,14 @@
       "inline_code": "Inline code",
       "code_block": "Code block",
       "link": "Link",
-      "link_text": "link text"
+      "link_text": "link text",
+      "strikethrough": "Strikethrough",
+      "strikethrough_text": "strikethrough",
+      "task_list": "Task list",
+      "table": "Table",
+      "divider": "Divider",
+      "table_col": "Column {{n}}",
+      "table_cell": "Cell"
     },
     "images": {
       "reorder_hint": "Drag thumbnails to reorder",

@@ -65,7 +65,52 @@ export function RSSService(): Hono {
         return c.redirect('/rss.xml', 301);
     });
 
+    // GET /sitemap.xml - for search engines (Baidu/Bing/Google/360/Sogou)
+    app.get('/sitemap.xml', async (c: AppContext) => {
+        return handleSitemap(c);
+    });
+
     return app;
+}
+
+function xmlEscape(value: string) {
+    return value
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&apos;");
+}
+
+async function handleSitemap(c: AppContext) {
+    const db = c.get('db');
+    const origin = new URL(c.req.url).origin;
+
+    const list = await profileAsync(c, 'sitemap_feed_list', () => db.query.feeds.findMany({
+        where: and(eq(feeds.draft, 0), eq(feeds.listed, 1)),
+        orderBy: [desc(feeds.updatedAt)],
+        columns: { id: true, alias: true, updatedAt: true },
+    }));
+
+    const now = new Date().toISOString();
+    const urls: string[] = [];
+
+    for (const path of ["/", "/timeline", "/moments", "/friends", "/hashtags"]) {
+        urls.push(`  <url><loc>${xmlEscape(origin + path)}</loc><changefreq>daily</changefreq></url>`);
+    }
+
+    for (const f of list) {
+        const alias = (f.alias ?? "").trim();
+        const path = alias ? `/${alias}` : `/feed/${f.id}`;
+        const lastmod = f.updatedAt ? new Date(f.updatedAt).toISOString() : now;
+        urls.push(`  <url><loc>${xmlEscape(origin + path)}</loc><lastmod>${lastmod}</lastmod><changefreq>weekly</changefreq></url>`);
+    }
+
+    const xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join("\n")}\n</urlset>`;
+    return c.text(xml, 200, {
+        'Content-Type': 'application/xml; charset=UTF-8',
+        'Cache-Control': 'public, max-age=3600',
+    });
 }
 
 async function handleFeed(c: AppContext, fileName: string) {

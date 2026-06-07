@@ -829,7 +829,14 @@
       "inline_code": "行内代码",
       "code_block": "代码块",
       "link": "链接",
-      "link_text": "链接文字"
+      "link_text": "链接文字",
+      "strikethrough": "删除线",
+      "strikethrough_text": "删除线文字",
+      "task_list": "任务列表",
+      "table": "表格",
+      "divider": "分割线",
+      "table_col": "列{{n}}",
+      "table_cell": "内容"
     },
     "images": {
       "reorder_hint": "拖动缩略图可调整顺序",

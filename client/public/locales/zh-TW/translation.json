@@ -823,7 +823,14 @@
       "inline_code": "行內程式碼",
       "code_block": "程式碼區塊",
       "link": "連結",
-      "link_text": "連結文字"
+      "link_text": "連結文字",
+      "strikethrough": "刪除線",
+      "strikethrough_text": "刪除線文字",
+      "task_list": "任務清單",
+      "table": "表格",
+      "divider": "分割線",
+      "table_col": "欄{{n}}",
+      "table_cell": "內容"
     },
     "images": {
       "reorder_hint": "拖動縮圖可調整順序",

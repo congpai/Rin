@@ -814,7 +814,14 @@
       "inline_code": "インラインコード",
       "code_block": "コードブロック",
       "link": "リンク",
-      "link_text": "リンクテキスト"
+      "link_text": "リンクテキスト",
+      "strikethrough": "取り消し線",
+      "strikethrough_text": "取り消し線テキスト",
+      "task_list": "タスクリスト",
+      "table": "表",
+      "divider": "区切り線",
+      "table_col": "列{{n}}",
+      "table_cell": "セル"
     },
     "images": {
       "reorder_hint": "サムネイルをドラッグして並び替え",
