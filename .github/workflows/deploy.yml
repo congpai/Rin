@@ -217,6 +217,8 @@ jobs:
           RSS_TITLE: ${{ vars.RSS_TITLE || '' }}
           RSS_DESCRIPTION: ${{ vars.RSS_DESCRIPTION || '' }}
           CACHE_STORAGE_MODE: ${{ vars.CACHE_STORAGE_MODE || 's3' }}
+          RESEND_API_KEY: ${{ secrets.RESEND_API_KEY || '' }}
+          RESEND_FROM: ${{ vars.RESEND_FROM || '' }}
         run: |
           set -euo pipefail
           if [[ "${{ needs.prepare.outputs.is_production }}" == "true" ]]; then
