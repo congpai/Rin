@@ -422,6 +422,18 @@
         "uploading": "上傳中...",
         "add": "添加曲目",
         "remove": "刪除"
+      },
+      "items": {
+        "title": "播放清單",
+        "desc": "把網易雲 / QQ 音樂歌單、單曲和自有 MP3 加入同一個清單，依順序混合播放",
+        "empty": "清單為空，點擊下方按鈕新增平台歌單或上傳 MP3",
+        "item_desc": "可用上下按鈕調整播放順序",
+        "platform_title": "平台來源 {{index}}",
+        "custom_title": "自有曲目 {{index}}",
+        "cover": "封面圖 URL（可選）",
+        "add_platform": "新增平台歌單 / 單曲",
+        "add_custom": "新增自有 MP3",
+        "remove": "刪除"
       }
     },
     "webhook": {

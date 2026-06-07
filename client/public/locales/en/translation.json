@@ -437,6 +437,18 @@
         "uploading": "Uploading...",
         "add": "Add track",
         "remove": "Remove"
+      },
+      "items": {
+        "title": "Playlist",
+        "desc": "Add NetEase / QQ Music playlists, songs and your own MP3 files to a single list and play them mixed, in order",
+        "empty": "The list is empty. Use the buttons below to add a platform source or upload an MP3.",
+        "item_desc": "Reorder with the up/down buttons",
+        "platform_title": "Platform source {{index}}",
+        "custom_title": "Custom track {{index}}",
+        "cover": "Cover image URL (optional)",
+        "add_platform": "Add platform playlist / song",
+        "add_custom": "Add custom MP3",
+        "remove": "Remove"
       }
     },
     "webhook": {

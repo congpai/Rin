@@ -1,9 +1,11 @@
 import { useCallback, useContext, useEffect, useMemo, useState } from "react";
 import { ClientConfigContext, defaultClientConfig } from "../state/config";
 import {
+  buildMusicItemsFromLegacy,
   buildMusicPlatformSources,
   normalizeMusicSource,
   parseCustomMusicTracks,
+  parseMusicItems,
   parseMusicPlatformSources,
   type MusicPlatformSource,
 } from "../utils/music-config";
@@ -107,12 +109,23 @@ export function useMusicPlayerConfig() {
     () => parseCustomMusicTracks(readConfigValue(mergedConfig, "music.custom_tracks")),
     [mergedConfig],
   );
+  // Unified playlist: prefer the new `music.items`; fall back to migrating the
+  // legacy binary-mode config so existing setups keep working untouched.
+  const musicItems = useMemo(() => {
+    const items = parseMusicItems(readConfigValue(mergedConfig, "music.items"));
+    if (items.length > 0) {
+      return items;
+    }
+    return buildMusicItemsFromLegacy({
+      source: musicSource,
+      platformSources: musicPlatformSources,
+      customTracks: musicCustomTracks,
+    });
+  }, [mergedConfig, musicSource, musicPlatformSources, musicCustomTracks]);
   const musicAutoplay = parseBoolean(readConfigValue(mergedConfig, "music.autoplay"));
   const themeColor = String(readConfigValue(mergedConfig, "theme.color") ?? "#fc466b");
 
-  const hasPlatformSource = musicSource === "platform" && musicPlatformSources.length > 0;
-  const hasCustomSource = musicSource === "custom" && musicCustomTracks.length > 0;
-  const shouldRender = musicEnabled && (hasPlatformSource || hasCustomSource);
+  const shouldRender = musicEnabled && musicItems.length > 0;
 
   return {
     musicEnabled,
@@ -122,10 +135,9 @@ export function useMusicPlayerConfig() {
     musicId: platformId,
     musicPlatformSources,
     musicCustomTracks,
+    musicItems,
     musicAutoplay,
     themeColor,
     shouldRender,
-    hasPlatformSource,
-    hasCustomSource,
   };
 }

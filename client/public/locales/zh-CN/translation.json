@@ -437,6 +437,18 @@
         "uploading": "上传中...",
         "add": "添加曲目",
         "remove": "删除"
+      },
+      "items": {
+        "title": "播放列表",
+        "desc": "把网易云 / QQ 音乐歌单、单曲和自有 MP3 添加到同一个列表，按顺序混合播放",
+        "empty": "列表为空，点击下方按钮添加平台歌单或上传 MP3",
+        "item_desc": "可用上下按钮调整播放顺序",
+        "platform_title": "平台来源 {{index}}",
+        "custom_title": "自有曲目 {{index}}",
+        "cover": "封面图 URL（可选）",
+        "add_platform": "添加平台歌单 / 单曲",
+        "add_custom": "添加自有 MP3",
+        "remove": "删除"
       }
     },
     "webhook": {

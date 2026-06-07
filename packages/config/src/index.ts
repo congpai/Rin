@@ -23,6 +23,9 @@ export const CLIENT_CONFIG_DEFAULTS = new Map(
     "site.avatar_hover_label": "",
     "site.page_size": 5,
     "music.enabled": false,
+    // Unified, ordered playlist mixing platform sources and custom MP3 tracks.
+    // Legacy keys below are kept for one-time migration of existing configs.
+    "music.items": "[]",
     "music.source": "platform",
     "music.server": "netease",
     "music.type": "playlist",

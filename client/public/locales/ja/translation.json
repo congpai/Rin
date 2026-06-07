@@ -413,6 +413,18 @@
         "uploading": "アップロード中...",
         "add": "曲を追加",
         "remove": "削除"
+      },
+      "items": {
+        "title": "プレイリスト",
+        "desc": "NetEase / QQ Music のプレイリスト・楽曲と自前の MP3 を1つのリストにまとめ、順番に混在再生します",
+        "empty": "リストが空です。下のボタンからプラットフォームのソースを追加するか MP3 をアップロードしてください。",
+        "item_desc": "上下ボタンで並び替えできます",
+        "platform_title": "プラットフォームソース {{index}}",
+        "custom_title": "カスタム楽曲 {{index}}",
+        "cover": "カバー画像 URL（任意）",
+        "add_platform": "プラットフォームのプレイリスト/楽曲を追加",
+        "add_custom": "カスタム MP3 を追加",
+        "remove": "削除"
       }
     },
     "webhook": {

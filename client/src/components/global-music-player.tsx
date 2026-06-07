@@ -4,41 +4,72 @@ import { useMusicPlayerConfig } from "../hooks/useMusicPlayerConfig";
 import {
   mapCustomTracks,
   mapMetingTracks,
+  type APlayerTrack,
   type MetingApiTrack,
+  type MusicItem,
 } from "../utils/music-config";
 import { readApiErrorMessage } from "../utils/music-api";
 import "aplayer/dist/APlayer.min.css";
 
 type PlayerStatus = "idle" | "loading" | "ready" | "error";
 
-async function fetchPlatformTracks(sources: Array<{ server: string; type: string; id: string }>) {
-  const trackGroups = await Promise.all(sources.map(async (source) => {
-    const params = new URLSearchParams({
-      server: source.server,
-      type: source.type,
-      id: source.id,
-    });
-    const response = await fetch(`/api/meting/api?${params.toString()}`);
-    if (!response.ok) {
-      throw new Error(await readApiErrorMessage(response));
-    }
-    const payload = await response.json() as MetingApiTrack[] | MetingApiTrack;
-    const list = Array.isArray(payload) ? payload : [payload];
-    return mapMetingTracks(list);
-  }));
+async function fetchPlatformItem(item: {
+  server: string;
+  type: string;
+  id: string;
+}): Promise<APlayerTrack[]> {
+  const params = new URLSearchParams({
+    server: item.server,
+    type: item.type,
+    id: item.id,
+  });
+  const response = await fetch(`/api/meting/api?${params.toString()}`);
+  if (!response.ok) {
+    throw new Error(await readApiErrorMessage(response));
+  }
+  const payload = await response.json() as MetingApiTrack[] | MetingApiTrack;
+  const list = Array.isArray(payload) ? payload : [payload];
+  return mapMetingTracks(list);
+}
 
-  const tracks = trackGroups.flat();
+// Expand the unified item list into a flat playlist, preserving order. Each
+// item is resolved independently so a single broken platform source (expired
+// playlist, region block, ...) never wipes out the rest of the playlist.
+async function loadMusicItems(items: MusicItem[]): Promise<APlayerTrack[]> {
+  const results = await Promise.allSettled(
+    items.map((item) => (
+      item.kind === "custom"
+        ? Promise.resolve(mapCustomTracks([{
+            name: item.name,
+            artist: item.artist,
+            url: item.url,
+            cover: item.cover,
+            lrc: item.lrc,
+          }]))
+        : fetchPlatformItem(item)
+    )),
+  );
+
+  const tracks: APlayerTrack[] = [];
+  const errors: string[] = [];
+  for (const result of results) {
+    if (result.status === "fulfilled") {
+      tracks.push(...result.value);
+    } else {
+      const reason = result.reason;
+      errors.push(reason instanceof Error ? reason.message : String(reason));
+    }
+  }
+
   if (tracks.length === 0) {
-    throw new Error("No playable tracks found");
+    throw new Error(errors[0] ?? "No playable tracks found");
   }
   return tracks;
 }
 
 export function GlobalMusicPlayer() {
   const {
-    musicSource,
-    musicPlatformSources,
-    musicCustomTracks,
+    musicItems,
     musicAutoplay,
     themeColor,
     shouldRender,
@@ -75,9 +106,7 @@ export function GlobalMusicPlayer() {
       playerRef.current = null;
       containerRef.current.innerHTML = "";
 
-      const rawAudio = musicSource === "custom"
-        ? mapCustomTracks(musicCustomTracks)
-        : await fetchPlatformTracks(musicPlatformSources);
+      const rawAudio = await loadMusicItems(musicItems);
 
       const audio = rawAudio.map(({ name, artist, url, cover }) => ({
         name,
@@ -131,9 +160,7 @@ export function GlobalMusicPlayer() {
   }, [
     shouldRender,
     musicAutoplay,
-    musicCustomTracks,
-    musicPlatformSources,
-    musicSource,
+    musicItems,
     themeColor,
   ]);
 

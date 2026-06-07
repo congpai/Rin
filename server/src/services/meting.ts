@@ -190,7 +190,11 @@ async function buildMetingApiResponse(c: AppContext) {
       }, 404);
     }
 
-    if (server === "tencent") {
+    // Proxy netease & tencent through our server so the upstream CDN receives
+    // the required Referer/Cookie and the browser gets a same-origin https
+    // stream. A bare 302 to the netease CDN fails on hotlink/referer checks,
+    // which is why covers (image CDN) loaded but audio did not.
+    if (server === "tencent" || server === "netease") {
       const proxied = await proxyAudioStream(
         server,
         streamUrl,
@@ -199,7 +203,9 @@ async function buildMetingApiResponse(c: AppContext) {
       );
       if (!proxied.ok) {
         return c.json({
-          message: "QQ 音乐音频流获取失败，请检查 Cookie 或稍后重试",
+          message: server === "tencent"
+            ? "QQ 音乐音频流获取失败，请检查 Cookie 或稍后重试"
+            : "网易云音频流获取失败，请检查 Cookie 或稍后重试",
         }, 502);
       }
       return proxied;

@@ -172,3 +172,117 @@ export function mapCustomTracks(tracks: CustomMusicTrack[]): APlayerTrack[] {
     lrc: track.lrc,
   }));
 }
+
+// --- Unified playlist model -------------------------------------------------
+// A single ordered list where each entry is either a platform source (expands
+// to N tracks via Meting) or a direct custom track. This lets NetEase, QQ Music
+// and self-hosted MP3 coexist in one playlist, in a user-defined order.
+
+export type MusicPlatformItem = {
+  kind: "platform";
+  server: string;
+  type: string;
+  id: string;
+};
+
+export type MusicCustomItem = {
+  kind: "custom";
+  name: string;
+  artist: string;
+  url: string;
+  cover?: string;
+  lrc?: string;
+};
+
+export type MusicItem = MusicPlatformItem | MusicCustomItem;
+
+export function emptyPlatformItem(): MusicPlatformItem {
+  return { kind: "platform", server: "netease", type: "playlist", id: "" };
+}
+
+export function emptyCustomItem(): MusicCustomItem {
+  return { kind: "custom", name: "", artist: "", url: "", cover: "" };
+}
+
+function normalizeMusicItem(item: unknown): MusicItem | null {
+  if (!item || typeof item !== "object") {
+    return null;
+  }
+  const record = item as Record<string, unknown>;
+  // Custom track: identified by a direct url and no platform fields (or kind).
+  const kind = String(record.kind ?? "").trim();
+  const looksCustom = kind === "custom"
+    || (kind !== "platform" && typeof record.url === "string" && !record.server);
+
+  if (looksCustom) {
+    const url = String(record.url ?? "").trim();
+    if (!url) {
+      return null;
+    }
+    return {
+      kind: "custom",
+      name: String(record.name ?? "Untitled").trim() || "Untitled",
+      artist: String(record.artist ?? "").trim(),
+      url,
+      cover: String(record.cover ?? "").trim() || undefined,
+      lrc: String(record.lrc ?? "").trim() || undefined,
+    };
+  }
+
+  const server = String(record.server ?? "").trim();
+  const type = String(record.type ?? "").trim();
+  const id = String(record.id ?? "").trim();
+  if (!server || !type || !id) {
+    return null;
+  }
+  return { kind: "platform", server, type, id };
+}
+
+export function parseMusicItems(raw: unknown): MusicItem[] {
+  let source: unknown = raw;
+  if (typeof raw === "string") {
+    if (!raw.trim()) {
+      return [];
+    }
+    try {
+      source = JSON.parse(raw);
+    } catch {
+      return [];
+    }
+  }
+  if (!Array.isArray(source)) {
+    return [];
+  }
+  return source
+    .map((item) => normalizeMusicItem(item))
+    .filter((item): item is MusicItem => item !== null);
+}
+
+export function serializeMusicItems(items: MusicItem[]): string {
+  return JSON.stringify(items);
+}
+
+// One-time migration: fold the legacy binary-mode config (music.source +
+// platform sources OR custom tracks) into a unified, ordered item list.
+export function buildMusicItemsFromLegacy(input: {
+  source: MusicSource;
+  platformSources: MusicPlatformSource[];
+  customTracks: CustomMusicTrack[];
+}): MusicItem[] {
+  if (input.source === "custom") {
+    return input.customTracks.map<MusicCustomItem>((track) => ({
+      kind: "custom",
+      name: track.name,
+      artist: track.artist,
+      url: track.url,
+      cover: track.cover,
+      lrc: track.lrc,
+    }));
+  }
+  return input.platformSources.map<MusicPlatformItem>((source) => ({
+    kind: "platform",
+    server: source.server,
+    type: source.type,
+    id: source.id,
+  }));
+}

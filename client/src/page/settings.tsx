@@ -17,7 +17,17 @@ import {
 import { FEED_CARD_VARIANTS, normalizeFeedCardVariant } from "../components/feed-card-options";
 import { FeedCardPreview } from "../components/feed-card-preview";
 import { FEED_LAYOUT_OPTIONS, normalizeFeedLayout } from "../components/feed-layout-options";
-import { MUSIC_SERVERS, MUSIC_SOURCES, MUSIC_TYPES, useSiteConfig } from "../hooks/useSiteConfig";
+import { useSiteConfig } from "../hooks/useSiteConfig";
+import {
+  buildMusicItemsFromLegacy,
+  buildMusicPlatformSources,
+  normalizeMusicSource,
+  parseCustomMusicTracks,
+  parseMusicItems,
+  parseMusicPlatformSources,
+  serializeMusicItems,
+  type MusicPlatformSource,
+} from "../utils/music-config";
 import { applyThemeColor, normalizeThemeColor } from "../utils/theme-color";
 import { AISummarySettings } from "./settings-ai";
 import { ItemButton, ItemImageInput, ItemInput, ItemSwitch, ItemTitle, ItemWithUpload } from "./settings-items";
@@ -33,9 +43,38 @@ import {
   updateDraftConfig,
   uploadFavicon,
 } from "./settings-helpers";
-import { SettingsMusicSourcesEditor, SettingsMusicTracksEditor } from "./settings-music";
+import { SettingsMusicItemsEditor } from "./settings-music";
 
 import "../utils/thumb.css";
+
+// Show the unified `music.items` list in the editor, migrating legacy
+// platform/custom config on the fly when `music.items` has not been set yet.
+// The editor only ever writes back to `music.items`.
+function resolveMusicItemsValue(config: { get: (key: string) => unknown }): string {
+  const raw = config.get("music.items");
+  const existing = parseMusicItems(raw);
+  if (existing.length > 0) {
+    return typeof raw === "string" ? raw : serializeMusicItems(existing);
+  }
+
+  const source = normalizeMusicSource(config.get("music.source"));
+  const id = String(config.get("music.id") ?? "").trim();
+  const primary: MusicPlatformSource | null = id
+    ? {
+        server: String(config.get("music.server") ?? "netease"),
+        type: String(config.get("music.type") ?? "playlist"),
+        id,
+      }
+    : null;
+  const platformSources = buildMusicPlatformSources(
+    primary,
+    parseMusicPlatformSources(config.get("music.sources")),
+  );
+  const customTracks = parseCustomMusicTracks(config.get("music.custom_tracks"));
+  return serializeMusicItems(
+    buildMusicItemsFromLegacy({ source, platformSources, customTracks }),
+  );
+}
 
 const WEBHOOK_METHOD_OPTIONS = ["GET", "POST", "PUT", "PATCH", "DELETE", "HEAD", "OPTIONS"].map((value) => ({
   label: value,
@@ -526,119 +565,23 @@ export function Settings() {
           />
           <div className="w-full">
             <SettingsCard>
-              <SettingsCardRow
-                header={
-                  <SettingsCardHeader
-                    title={t("settings.music.source.title")}
-                    description={t("settings.music.source.desc")}
-                  />
-                }
-                action={
-                  <SearchableSelect
-                    value={String(clientConfig.get("music.source") ?? "platform")}
+              <SettingsCardBody>
+                <SettingsCardHeader
+                  title={t("settings.music.items.title")}
+                  description={t("settings.music.items.desc")}
+                />
+                <div className="mt-3">
+                  <SettingsMusicItemsEditor
+                    value={resolveMusicItemsValue(clientConfig)}
                     onChange={(value) => {
-                      setConfigValue("client", "music.source", value);
+                      setConfigValue("client", "music.items", value);
                     }}
-                    options={MUSIC_SOURCES.map((value) => ({
-                      label: t(`settings.music.source.options.${value}`),
-                      value,
-                    }))}
-                    placeholder={t("settings.music.source.title")}
+                    onError={showAlert}
                   />
-                }
-              />
+                </div>
+              </SettingsCardBody>
             </SettingsCard>
           </div>
-          {String(clientConfig.get("music.source") ?? "platform") === "platform" ? (
-            <>
-              <div className="w-full">
-                <SettingsCard>
-                  <SettingsCardRow
-                    header={
-                      <SettingsCardHeader
-                        title={t("settings.music.server.title")}
-                        description={t("settings.music.server.desc")}
-                      />
-                    }
-                    action={
-                      <SearchableSelect
-                        value={String(clientConfig.get("music.server") ?? "netease")}
-                        onChange={(value) => {
-                          setConfigValue("client", "music.server", value);
-                        }}
-                        options={MUSIC_SERVERS.map((value) => ({
-                          label: t(`settings.music.server.options.${value}`),
-                          value,
-                        }))}
-                        placeholder={t("settings.music.server.title")}
-                      />
-                    }
-                  />
-                </SettingsCard>
-              </div>
-              <div className="w-full">
-                <SettingsCard>
-                  <SettingsCardRow
-                    header={
-                      <SettingsCardHeader
-                        title={t("settings.music.type.title")}
-                        description={t("settings.music.type.desc")}
-                      />
-                    }
-                    action={
-                      <SearchableSelect
-                        value={String(clientConfig.get("music.type") ?? "playlist")}
-                        onChange={(value) => {
-                          setConfigValue("client", "music.type", value);
-                        }}
-                        options={MUSIC_TYPES.map((value) => ({
-                          label: t(`settings.music.type.options.${value}`),
-                          value,
-                        }))}
-                        placeholder={t("settings.music.type.title")}
-                      />
-                    }
-                  />
-                </SettingsCard>
-              </div>
-              <ItemInput
-                title={t("settings.music.id.title")}
-                description={t("settings.music.id.desc")}
-                configKeyTitle={t("settings.music.id.label")}
-                value={String(clientConfig.get("music.id") ?? "")}
-                placeholder={t("settings.music.id.label")}
-                onChange={(value) => {
-                  setConfigValue("client", "music.id", value);
-                }}
-              />
-              <div className="w-full">
-                <SettingsCard>
-                  <SettingsCardBody>
-                    <SettingsCardHeader
-                      title={t("settings.music.sources.title")}
-                      description={t("settings.music.sources.desc")}
-                    />
-                    <div className="mt-3">
-                      <SettingsMusicSourcesEditor
-                        value={String(clientConfig.get("music.sources") ?? "[]")}
-                        onChange={(value) => {
-                          setConfigValue("client", "music.sources", value);
-                        }}
-                      />
-                    </div>
-                  </SettingsCardBody>
-                </SettingsCard>
-              </div>
-            </>
-          ) : (
-            <SettingsMusicTracksEditor
-              value={String(clientConfig.get("music.custom_tracks") ?? "[]")}
-              onChange={(value) => {
-                setConfigValue("client", "music.custom_tracks", value);
-              }}
-              onError={showAlert}
-            />
-          )}
           <ItemSwitch
             title={t("settings.music.autoplay.title")}
             description={t("settings.music.autoplay.desc")}
