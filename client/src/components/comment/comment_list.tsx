@@ -238,9 +238,10 @@ function CommentTailFooter({
                 {onReplyClick ? (
                     <button
                         type="button"
-                        className="whitespace-nowrap transition-colors hover:text-theme"
+                        className="inline-flex items-center gap-1 whitespace-nowrap transition-colors hover:text-theme"
                         onClick={onReplyClick}
                     >
+                        <i className="ri-reply-line" />
                         {t("comment.reply")}
                     </button>
                 ) : null}
@@ -462,9 +463,10 @@ function CommentThread({
                     {onReply ? (
                         <button
                             type="button"
-                            className="whitespace-nowrap text-sm text-gray-400 transition-colors hover:text-theme"
+                            className="inline-flex items-center gap-1 whitespace-nowrap text-sm text-gray-400 transition-colors hover:text-theme"
                             onClick={() => onReply(buildReplyTarget(root, root, anonymous))}
                         >
+                            <i className="ri-reply-line" />
                             {t("comment.reply")}
                         </button>
                     ) : null}
