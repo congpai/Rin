@@ -1,4 +1,5 @@
 import { getApp } from "./app-instance";
+import { isCrawler, prerenderForCrawler } from "./prerender";
 
 const ROOT_FEED_PATTERN = /^\/(rss\.xml|atom\.xml|rss\.json|feed\.json|feed\.xml)$/;
 const APP_PUBLIC_ROUTE_PATTERN = /^\/(favicon|favicon\.ico)(?:\/|$)/;
@@ -77,6 +78,19 @@ export async function handleFetch(request: Request, env: Env, ctx?: ExecutionCon
     const asset = await tryServeAsset(request, env);
     if (asset) {
       return asset;
+    }
+  }
+
+  // Server-render real content for search-engine crawlers (the SPA shell is
+  // empty to non-JS bots). Never let this break crawling: fall back to the SPA.
+  if (isCrawler(request)) {
+    try {
+      const prerendered = await prerenderForCrawler(request, env);
+      if (prerendered) {
+        return prerendered;
+      }
+    } catch (error) {
+      console.error("Prerender failed, falling back to SPA:", error);
     }
   }
 
