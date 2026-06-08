@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import ReactLoading from "react-loading";
+import { ChickenLoader } from "./chicken-loader";
 
 export function Waiting({
   for: wait,
@@ -9,8 +9,8 @@ export function Waiting({
   children?: ReactNode;
 }) {
   return !wait ? (
-    <div className="w-full h-96 flex flex-col justify-center items-center mb-8 ani-show-fast text-theme">
-      <ReactLoading type="cylon" color="currentColor" />
+    <div className="w-full h-96 flex flex-col justify-center items-center mb-8 ani-show-fast">
+      <ChickenLoader />
     </div>
   ) : (
     <>{children}</>

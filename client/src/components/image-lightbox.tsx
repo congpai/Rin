@@ -11,6 +11,7 @@ import {
     type LightboxSlideData,
 } from "../utils/lightbox-image";
 import { markVariantsAvailable, markVariantsUnavailable } from "../utils/variant-availability";
+import { ChickenLoader } from "@rin/ui";
 
 function FallbackImageSlide({
     slide,
@@ -77,6 +78,7 @@ export function ImageLightbox({ render, ...props }: ImageLightboxProps) {
             {...props}
             render={{
                 ...render,
+                iconLoading: render?.iconLoading ?? (() => <ChickenLoader size={64} />),
                 slide: (slideProps) => {
                     const custom = render?.slide?.(slideProps);
                     if (custom) {

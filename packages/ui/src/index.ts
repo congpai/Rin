@@ -1,4 +1,5 @@
 export * from "./button";
+export * from "./chicken-loader";
 export * from "./date-time-input";
 export * from "./flat-surface";
 export * from "./icon";
