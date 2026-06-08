@@ -829,5 +829,13 @@
       "insert": "{{count}} 枚を挿入",
       "remove": "削除"
     }
+  },
+  "newsletter": {
+    "prompt": "購読すると新着記事をメールでお知らせします",
+    "placeholder": "メールアドレスを入力",
+    "subscribe": "購読",
+    "subscribing": "購読中...",
+    "success": "購読しました!",
+    "error": "購読に失敗しました。後でもう一度お試しください"
   }
 }

@@ -68,6 +68,13 @@ export function createMockDB() {
             FOREIGN KEY (uid) REFERENCES users(id)
         );
 
+        CREATE TABLE IF NOT EXISTS newsletter_subscribers (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            email TEXT NOT NULL UNIQUE,
+            token TEXT NOT NULL,
+            created_at INTEGER DEFAULT (unixepoch())
+        );
+
         -- Visits table
         CREATE TABLE IF NOT EXISTS visits (
             id INTEGER PRIMARY KEY AUTOINCREMENT,

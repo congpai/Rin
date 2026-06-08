@@ -838,5 +838,13 @@
       "insert": "插入 {{count}} 張",
       "remove": "移除"
     }
+  },
+  "newsletter": {
+    "prompt": "訂閱更新,新文章發布時以信件通知你",
+    "placeholder": "輸入你的信箱",
+    "subscribe": "訂閱",
+    "subscribing": "訂閱中...",
+    "success": "訂閱成功!",
+    "error": "訂閱失敗,請稍後再試"
   }
 }

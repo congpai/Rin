@@ -844,5 +844,13 @@
       "insert": "插入 {{count}} 张",
       "remove": "移除"
     }
+  },
+  "newsletter": {
+    "prompt": "订阅更新,新文章发布时邮件通知你",
+    "placeholder": "输入你的邮箱",
+    "subscribe": "订阅",
+    "subscribing": "订阅中...",
+    "success": "订阅成功!",
+    "error": "订阅失败,请稍后重试"
   }
 }

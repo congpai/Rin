@@ -4,6 +4,13 @@ import { integer, sqliteTable, text, unique } from "drizzle-orm/sqlite-core";
 const created_at = integer("created_at", { mode: 'timestamp' }).default(sql`(unixepoch())`).notNull();
 const updated_at = integer("updated_at", { mode: 'timestamp' }).default(sql`(unixepoch())`).notNull();
 
+export const newsletterSubscribers = sqliteTable("newsletter_subscribers", {
+    id: integer("id").primaryKey(),
+    email: text("email").notNull().unique(),
+    token: text("token").notNull(),
+    createdAt: created_at,
+});
+
 export const feeds = sqliteTable("feeds", {
     id: integer("id").primaryKey(),
     alias: text("alias"),

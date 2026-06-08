@@ -455,42 +455,29 @@ function CommentThread({
                     ) : null}
                     <span
                         title={new Date(root.createdAt).toLocaleString()}
-                        className="text-sm text-gray-400"
+                        className="text-sm text-gray-400 whitespace-nowrap"
                     >
                         {timeago(root.createdAt)}
                     </span>
-                </div>
-                <CommentContent content={root.content} />
-                {replies.length > 0 ? (
-                    <CommentReplyTail
-                        root={root}
-                        replies={replies}
-                        byId={byId}
-                        defaultAvatar={siteConfig.avatar}
-                        onDelete={onDelete}
-                        onApprove={onApprove}
-                        onRefresh={onRefresh}
-                        onReply={onReply}
-                    />
-                ) : null}
-                <div className="mt-2 flex items-center justify-between gap-2">
                     {onReply ? (
                         <button
                             type="button"
-                            className="rounded-full bg-secondary px-3 py-1 text-sm t-secondary hover:bg-button"
+                            className="whitespace-nowrap text-sm text-gray-400 transition-colors hover:text-theme"
                             onClick={() => onReply(buildReplyTarget(root, root, anonymous))}
                         >
                             {t("comment.reply")}
                         </button>
-                    ) : (
-                        <span />
-                    )}
+                    ) : null}
                     {canDelete ? (
                         <Popup
                             arrow={false}
                             trigger={
-                                <button className="rounded-full bg-secondary px-2 py-1">
-                                    <i className="ri-more-fill t-secondary" />
+                                <button
+                                    type="button"
+                                    className="rounded px-1 opacity-70 transition hover:opacity-100"
+                                    aria-label={t("delete.comment.title")}
+                                >
+                                    <i className="ri-more-fill text-sm t-secondary" />
                                 </button>
                             }
                             position="left center"
@@ -519,6 +506,19 @@ function CommentThread({
                         </Popup>
                     ) : null}
                 </div>
+                <CommentContent content={root.content} />
+                {replies.length > 0 ? (
+                    <CommentReplyTail
+                        root={root}
+                        replies={replies}
+                        byId={byId}
+                        defaultAvatar={siteConfig.avatar}
+                        onDelete={onDelete}
+                        onApprove={onApprove}
+                        onRefresh={onRefresh}
+                        onReply={onReply}
+                    />
+                ) : null}
             </div>
             <ConfirmUI />
             <AlertUI />

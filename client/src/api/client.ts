@@ -656,6 +656,18 @@ class StorageAPI {
 }
 
 /**
+ * Newsletter API methods
+ */
+class NewsletterAPI {
+  constructor(private http: HttpClient) {}
+
+  // POST /api/newsletter/subscribe
+  async subscribe(email: string): Promise<ApiResponse<{ success: boolean }>> {
+    return this.http.post<{ success: boolean }>("/api/newsletter/subscribe", { email });
+  }
+}
+
+/**
  * Search API methods
  */
 class SearchAPI {
@@ -746,6 +758,7 @@ export class ApiClient {
   auth: AuthAPI;
   wp: WordPressAPI;
   rss: RSSAPI;
+  newsletter: NewsletterAPI;
 
   constructor(baseUrl: string) {
     this.http = new HttpClient(baseUrl);
@@ -763,6 +776,7 @@ export class ApiClient {
     this.auth = new AuthAPI(this.http);
     this.wp = new WordPressAPI(this.http);
     this.rss = new RSSAPI(baseUrl);
+    this.newsletter = new NewsletterAPI(this.http);
   }
 }
 

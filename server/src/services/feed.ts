@@ -14,6 +14,18 @@ import { cleanupRemovedImagesFromPreviousContent, cleanupUnreferencedImagesFromC
 import { syncFeedAISummaryQueueState } from "./feed-ai-summary";
 import { bindTagToPost } from "./tag";
 import { clearFeedCache } from "./clear-feed-cache";
+import { notifyNewsletterSubscribers } from "../utils/newsletter";
+
+function fireNewsletter(c: any, db: any, env: any, feed: { id: number; title?: string; summary?: string; content?: string; alias?: string }) {
+    const origin = new URL(c.req.url).origin;
+    const siteName = String((env as Record<string, unknown>).NAME ?? "Rin");
+    const task = notifyNewsletterSubscribers(db, env, origin, feed, siteName);
+    try {
+        c.executionCtx.waitUntil(task);
+    } catch {
+        void task;
+    }
+}
 export { clearFeedCache } from "./clear-feed-cache";
 
 // Lazy-loaded modules for WordPress import
@@ -187,9 +199,15 @@ export function FeedService(): Hono<{
 
         if (result.length === 0) {
             return c.text('Failed to insert', 500);
-        } else {
-            return c.json(result[0]);
         }
+
+        // Newly published post -> notify newsletter subscribers (no-op if Resend
+        // is not configured or there are no subscribers).
+        if (!draft && listed) {
+            fireNewsletter(c, db, env, { id: result[0].insertedId, title, summary, content, alias });
+        }
+
+        return c.json(result[0]);
     });
 
     // GET /feed/:id
@@ -424,6 +442,11 @@ export function FeedService(): Hono<{
                 updatedAt: updateTime,
                 resetSummary: shouldQueueAISummary,
             }));
+        }
+
+        // Draft -> published transition: notify newsletter subscribers once.
+        if (feed.draft === 1 && !isDraft) {
+            fireNewsletter(c, db, env, { id: id_num, title, summary, content, alias });
         }
 
         await profileAsync(c, 'feed_update_cache_invalidate', () => clearFeedCache(cache, id_num, feed.alias, alias || null));

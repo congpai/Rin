@@ -844,5 +844,13 @@
       "insert": "Insert {{count}}",
       "remove": "Remove"
     }
+  },
+  "newsletter": {
+    "prompt": "Subscribe to get an email when new posts are published",
+    "placeholder": "Enter your email",
+    "subscribe": "Subscribe",
+    "subscribing": "Subscribing...",
+    "success": "Subscribed!",
+    "error": "Subscription failed, please try again"
   }
 }
