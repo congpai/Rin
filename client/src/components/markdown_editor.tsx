@@ -39,6 +39,7 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
   const [preview, setPreview] = useState<'edit' | 'preview' | 'comparison'>('edit');
   const [uploading, setUploading] = useState(false);
   const [uploadingVideo, setUploadingVideo] = useState(false);
+  const [videoProgress, setVideoProgress] = useState<number | null>(null);
   const [pendingImages, setPendingImages] = useState<{ id: string; file: File; url: string }[]>([]);
   const dragIndexRef = useRef<number | null>(null);
   const uploadRef = useRef<HTMLInputElement>(null);
@@ -191,6 +192,7 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
     let insertRange: IRange = selection;
 
     setUploadingVideo(true);
+    setVideoProgress(0);
     try {
       for (const file of videoFiles) {
         const model = editorInstance.getModel();
@@ -199,8 +201,11 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
         }
 
         try {
-          const result = await uploadVideoFile(file);
-          const text = buildMarkdownVideo(result.url);
+          setVideoProgress(0);
+          const result = await uploadVideoFile(file, {
+            onProgress: (ratio) => setVideoProgress(Math.round(ratio * 100)),
+          });
+          const text = buildMarkdownVideo(result);
           editorInstance.executeEdits("insert-video", [{
             range: insertRange,
             text,
@@ -215,6 +220,7 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
       }
     } finally {
       setUploadingVideo(false);
+      setVideoProgress(null);
     }
   }, [setContent, showAlert]);
 
@@ -402,7 +408,11 @@ export function MarkdownEditor({ content, setContent, placeholder = "> Write you
         {(uploading || uploadingVideo) &&
           <div className="flex flex-row items-center space-x-2">
             <Loading type="spin" color="#FC466B" height={16} width={16} />
-            <span className="text-sm text-neutral-500">{t('uploading')}</span>
+            <span className="text-sm text-neutral-500">
+              {uploadingVideo && videoProgress !== null
+                ? `${t('uploading')} ${videoProgress}%`
+                : t('uploading')}
+            </span>
           </div>
         }
       </FlatInset>

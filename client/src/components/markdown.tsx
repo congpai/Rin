@@ -137,6 +137,78 @@ function MarkdownImage({
   );
 }
 
+function LazyVideo({
+  src,
+  poster,
+  width,
+  height,
+  style,
+}: {
+  src?: string;
+  poster?: string;
+  width?: number;
+  height?: number;
+  style?: React.CSSProperties;
+}) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const [inView, setInView] = useState(false);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el || typeof IntersectionObserver === "undefined") {
+      setInView(true);
+      return;
+    }
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((entry) => entry.isIntersecting)) {
+          setInView(true);
+          observer.disconnect();
+        }
+      },
+      { rootMargin: "300px" },
+    );
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  const aspectRatio = width && height ? `${width} / ${height}` : undefined;
+  // Older uploads have no poster -> seek to the first frame so a frame shows.
+  const videoSrc = src && !poster && !src.includes("#t=") ? `${src}#t=0.1` : src;
+
+  return (
+    <span
+      ref={ref}
+      className="my-4 block w-full overflow-hidden rounded-xl"
+      style={{ maxWidth: "100%", aspectRatio, ...style }}
+    >
+      {inView ? (
+        <video
+          controls
+          playsInline
+          preload="none"
+          poster={poster}
+          src={videoSrc}
+          className="h-full w-full max-w-full"
+          style={{ width: "100%", height: aspectRatio ? "100%" : undefined }}
+        />
+      ) : poster ? (
+        <img
+          src={poster}
+          alt=""
+          loading="lazy"
+          className="h-full w-full max-w-full object-contain"
+        />
+      ) : (
+        <span
+          className="block w-full bg-black/5 dark:bg-white/5"
+          style={{ aspectRatio: aspectRatio ?? "16 / 9" }}
+        />
+      )}
+    </span>
+  );
+}
+
 export function Markdown({ content }: { content: string }) {
   const colorMode = useColorMode();
   const [index, setIndex] = React.useState(-1);
@@ -476,22 +548,15 @@ export function Markdown({ content }: { content: string }) {
           );
         },
         video({ node, ...props }) {
-          let src = typeof props.src === "string" ? props.src : undefined;
-          // Mobile browsers (esp. iOS) show only a play button with no poster
-          // frame; seeking to 0.1s via a media fragment forces the first frame
-          // to render. playsInline keeps it inline instead of going fullscreen.
-          if (src && !src.includes("#t=")) {
-            src = `${src}#t=0.1`;
-          }
+          const width = props.width != null ? Number(props.width) : undefined;
+          const height = props.height != null ? Number(props.height) : undefined;
           return (
-            <video
-              {...props}
-              src={src}
-              controls
-              playsInline
-              preload="metadata"
-              className={`max-w-full ${props.className || ""}`.trim()}
-              style={{ maxWidth: "100%", ...(props.style as React.CSSProperties) }}
+            <LazyVideo
+              src={typeof props.src === "string" ? props.src : undefined}
+              poster={typeof props.poster === "string" ? props.poster : undefined}
+              width={Number.isFinite(width) ? width : undefined}
+              height={Number.isFinite(height) ? height : undefined}
+              style={props.style as React.CSSProperties | undefined}
             />
           );
         },
