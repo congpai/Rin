@@ -82,7 +82,15 @@ function renderDocument(opts: {
 }
 
 function summarize(text: string, max = 200) {
-  return text.replace(/[#>*`!\[\]()_~-]/g, " ").replace(/\s+/g, " ").trim().slice(0, max);
+  return text
+    .replace(/!\[[^\]]*\]\([^)]*\)/g, " ")   // markdown images
+    .replace(/\[([^\]]*)\]\([^)]*\)/g, "$1")  // links -> their text
+    .replace(/<[^>]+>/g, " ")                  // html tags
+    .replace(/https?:\/\/\S+/g, " ")           // bare urls
+    .replace(/[#>*`~_\-|]/g, " ")              // remaining markdown punctuation
+    .replace(/\s+/g, " ")
+    .trim()
+    .slice(0, max);
 }
 
 export async function prerenderForCrawler(request: Request, env: Env): Promise<Response | null> {

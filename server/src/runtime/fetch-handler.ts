@@ -1,7 +1,7 @@
 import { getApp } from "./app-instance";
 import { isCrawler, prerenderForCrawler } from "./prerender";
 
-const ROOT_FEED_PATTERN = /^\/(rss\.xml|atom\.xml|rss\.json|feed\.json|feed\.xml)$/;
+const ROOT_FEED_PATTERN = /^\/(rss\.xml|atom\.xml|rss\.json|feed\.json|feed\.xml|sitemap\.xml)$/;
 const APP_PUBLIC_ROUTE_PATTERN = /^\/(favicon|favicon\.ico)(?:\/|$)/;
 
 function isApiRequest(pathname: string) {
