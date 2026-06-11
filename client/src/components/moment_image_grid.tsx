@@ -32,7 +32,7 @@ export function MomentImageGrid({ images }: MomentImageGridProps) {
             : cols === 2
               ? "(max-width: 768px) 50vw, 420px"
               : "(max-width: 768px) 33vw, 280px";
-    const preferredWidth = cols === 1 ? 960 : cols === 2 ? 480 : 320;
+    const preferredWidth = cols === 1 ? 960 : 640;
 
     const gridClass =
     cols === 1

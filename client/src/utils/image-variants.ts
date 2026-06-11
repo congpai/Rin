@@ -1,9 +1,9 @@
 import { attachImageMetadataToUrl, parseImageUrlMetadata } from "./image-upload";
 
-export const THUMBNAIL_WIDTHS = [320, 640, 960] as const;
+export const THUMBNAIL_WIDTHS = [640, 960] as const;
 export const VARIANT_FILE_EXTENSION = "webp";
 
-const VARIANT_FILE_RE = /^([a-f0-9]{40})_w(320|640|960)\.[a-z0-9]+$/i;
+const VARIANT_FILE_RE = /^([a-f0-9]{40})_w(640|960)\.[a-z0-9]+$/i;
 const BLOB_PATH_RE = /\/api\/blob\//;
 
 export function isVariantFileName(fileName: string) {

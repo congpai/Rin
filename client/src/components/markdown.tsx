@@ -76,8 +76,8 @@ function MarkdownImage({
   const { src: cleanSrc, blurhash, width, height } = parseImageUrlMetadata(src);
   const responsive = buildResponsiveImageProps(
     cleanSrc,
-    rounded ? "(max-width: 768px) 100vw, 768px" : "320px",
-    rounded ? 768 : 320,
+    rounded ? "(max-width: 768px) 100vw, 768px" : "640px",
+    rounded ? 768 : 640,
   );
   const [useOriginal, setUseOriginal] = useState(false);
   const displaySrc = useOriginal || !responsive.srcSet ? cleanSrc : responsive.src;

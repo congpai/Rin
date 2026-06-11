@@ -24,8 +24,9 @@ describe("responsive-image", () => {
 
     it("builds srcset from pre-generated variant urls", () => {
         const srcSet = buildResponsiveSrcSet(sampleUrl);
-        expect(srcSet).toContain("_w320.webp");
-        expect(srcSet).not.toContain("_w320.png");
+        expect(srcSet).toContain("_w640.webp");
+        expect(srcSet).toContain("_w960.webp");
+        expect(srcSet).not.toContain("_w640.png");
         expect(srcSet).not.toContain("?w=");
     });
 

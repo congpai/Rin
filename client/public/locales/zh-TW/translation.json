@@ -42,7 +42,7 @@
     },
     "image_variants": {
       "title": "補齊圖片縮圖",
-      "description": "掃描文章、動態、評論和頭像中引用的原圖，在 R2 中補生成 _w320/_w640/_w960.webp 變體。",
+      "description": "掃描文章、動態、評論和頭像中引用的原圖，在 R2 中補生成 _w640/_w960.webp 變體。",
       "eligible": "待補全 {{count}} 張",
       "referenced": "已引用原圖 {{count}} 張",
       "note": "任務在伺服器端執行，每批最多處理 5 張，已有變體會自動跳過。",

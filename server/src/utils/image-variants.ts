@@ -1,7 +1,7 @@
-export const THUMBNAIL_WIDTHS = [320, 640, 960] as const;
+export const THUMBNAIL_WIDTHS = [640, 960] as const;
 export const VARIANT_FILE_EXTENSION = "webp";
 
-const VARIANT_KEY_RE = /^([a-f0-9]{40})_w(320|640|960)\.[a-z0-9]+$/i;
+const VARIANT_KEY_RE = /^([a-f0-9]{40})_w(640|960)\.[a-z0-9]+$/i;
 
 export function isVariantStorageFileName(name: string) {
     return VARIANT_KEY_RE.test(name);
@@ -33,7 +33,7 @@ export function getBaseStorageKeyFromVariant(storageKey: string) {
 
     const slash = storageKey.lastIndexOf("/");
     const folder = slash >= 0 ? `${storageKey.slice(0, slash + 1)}` : "";
-    const match = fileName.match(/^([a-f0-9]{40})_w(320|640|960)\.[a-z0-9]+$/i);
+    const match = fileName.match(/^([a-f0-9]{40})_w(640|960)\.[a-z0-9]+$/i);
     if (!match) {
         return null;
     }

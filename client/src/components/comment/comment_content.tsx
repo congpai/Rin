@@ -53,7 +53,7 @@ export function CommentTailImages({ content }: { content: string }) {
                             alt={image.alt}
                             loading="lazy"
                             sizes="128px"
-                            preferredWidth={320}
+                            preferredWidth={640}
                             className="max-h-20 max-w-[8rem] rounded-md object-cover transition hover:opacity-90"
                         />
                     </button>
