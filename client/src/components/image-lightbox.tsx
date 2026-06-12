@@ -70,12 +70,21 @@ function FallbackImageSlide({
     );
 }
 
-type ImageLightboxProps = LightboxExternalProps;
+type ImageLightboxProps = LightboxExternalProps & {
+    onIndexChange?: (index: number) => void;
+};
 
-export function ImageLightbox({ render, ...props }: ImageLightboxProps) {
+export function ImageLightbox({ render, on, onIndexChange, ...props }: ImageLightboxProps) {
     return (
         <Lightbox
             {...props}
+            on={{
+                ...on,
+                view: (event) => {
+                    on?.view?.(event);
+                    onIndexChange?.(event.index);
+                },
+            }}
             render={{
                 ...render,
                 iconLoading: render?.iconLoading ?? (() => <ChickenLoader size={64} />),

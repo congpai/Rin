@@ -30,6 +30,7 @@ export function useCommentImageLightbox(images: CommentImageSlide[]) {
                 slides={slides}
                 open={index >= 0}
                 close={() => setIndex(-1)}
+                onIndexChange={setIndex}
             />
         ) : null;
 

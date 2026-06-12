@@ -89,6 +89,7 @@ export function MomentImageGrid({ images }: MomentImageGridProps) {
                 slides={slides}
                 open={index >= 0}
                 close={() => setIndex(-1)}
+                onIndexChange={setIndex}
             />
         </>
     );

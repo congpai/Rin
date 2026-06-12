@@ -574,6 +574,7 @@ export function Markdown({ content }: { content: string }) {
         slides={lightboxSlides}
         open={index >= 0}
         close={() => setIndex(-1)}
+        onIndexChange={setIndex}
       />
     </>
   );
